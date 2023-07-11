@@ -10,13 +10,22 @@
  */
 	#include "boot.h"
 
-  	// 16位代码，务必加上
+  	// 16位代码,务必加上
   	.code16
  	.text
 	.global _start
 _start:
+    // 采用平坦模式,所有的段寄存器全部指向0
+	mov $0, %ax
+	mov %ax, %ds
+	mov %ax, %es
+	mov %ax, %ss
+	mov %ax, %fs
+	mov %ax, %gs
+	// ESP寄存器指向栈的顶部,设置其指向 0x7c00
+	mov $_start, %esp
 	jmp .
 	
 	// 引导结束段
 	.section boot_end, "ax"
-boot_sig: .byte 0x55, 0xaa
+boot_sig: .byte 0x55, 0xaa 
