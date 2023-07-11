@@ -22,8 +22,15 @@ _start:
 	mov %ax, %ss
 	mov %ax, %fs
 	mov %ax, %gs
+
 	// ESP寄存器指向栈的顶部,设置其指向 0x7c00
 	mov $_start, %esp
+
+	// 使用软中断显示'L'字符
+	mov $0x13, %ah
+	mov $'L', %al
+	int $0x10
+
 	jmp .
 	
 	// 引导结束段
