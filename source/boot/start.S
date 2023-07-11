@@ -5,8 +5,7 @@
  * 该部分程序存储于磁盘的第1个扇区，在计算机启动时将会由BIOS加载到0x7c00处
  * 之后，将由BIOS跳转至0x7c00处开始运行
  * 
- * 作者：李述铜
- * 联系邮箱: 527676163@qq.com
+ * 作者：WARRIOR
  */
 	#include "boot.h"
 
@@ -31,6 +30,15 @@ _start:
 	mov $'L', %al
 	int $0x10
 
+read_loader:
+	mov $0x8000, %bx
+	mov $0x2, %ah
+	mov $0x2, %cx
+	mov $64, %al
+	mov $0x0080, %dx
+	int $0x13
+	jc read_loader
+	
 	jmp .
 	
 	// 引导结束段
