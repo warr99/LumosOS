@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-11 13:44:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-12 17:12:14
+ * @LastEditTime: 2023-07-12 20:25:39
  * @Description:
  */
 
@@ -24,7 +24,7 @@ static void read_dick(uint32_t sector, int sector_count, uint8_t* buf) {
     outb(0x1F7, (uint8_t)0x24);
 
     uint16_t* data_buf = (uint16_t*)buf;
-    
+
     while (sector_count-- > 0) {
         // 每次扇区读之前都要检查，等待数据就绪
         while ((inb(0x1F7) & 0x88) != 0x8) {
@@ -39,6 +39,7 @@ static void read_dick(uint32_t sector, int sector_count, uint8_t* buf) {
 
 void load_kernel(void) {
     read_dick(100, 500, (uint8_t*)SYS_KERNEL_LOAD_ADDR);
+    ((void (*)(void))SYS_KERNEL_LOAD_ADDR)();
     for (;;) {
     }
 }
