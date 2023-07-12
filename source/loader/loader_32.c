@@ -39,7 +39,7 @@ static void read_dick(uint32_t sector, int sector_count, uint8_t* buf) {
 
 void load_kernel(void) {
     read_dick(100, 500, (uint8_t*)SYS_KERNEL_LOAD_ADDR);
-    ((void (*)(void))SYS_KERNEL_LOAD_ADDR)();
+    ((void (*)(boot_info_t *))SYS_KERNEL_LOAD_ADDR)(&boot_info);
     for (;;) {
     }
 }
