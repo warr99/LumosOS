@@ -1,4 +1,5 @@
 SECTIONS {
+
     . = 0x10000;
 
     .text : {
@@ -16,4 +17,5 @@ SECTIONS {
     .bss : {
         *(.bss)
     }
+
 }
