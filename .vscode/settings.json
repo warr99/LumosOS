@@ -14,7 +14,9 @@
         "loader.h": "c",
         "cpu_instr.h": "c",
         "boot_info.h": "c",
-        "elf.h": "c"
+        "elf.h": "c",
+        "irq.h": "c",
+        "cpu.h": "c"
     },
     "fileheader.configObj": {
         "createFileTime": true,

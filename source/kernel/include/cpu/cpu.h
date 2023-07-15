@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-13 14:49:44
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-15 09:46:09
+ * @LastEditTime: 2023-07-15 10:17:55
  * @Description:
  */
 #ifndef CPU_H
@@ -26,7 +26,7 @@ typedef struct _gate_desc_t {
     uint16_t offset15_0;
     uint16_t selector;
     uint16_t attr;
-    uint8_t offset31_16;
+    uint16_t offset31_16;
 } gate_desc_t;
 
 #pragma pack()
