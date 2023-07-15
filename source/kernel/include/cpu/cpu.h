@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-13 14:49:44
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-15 10:17:55
+ * @LastEditTime: 2023-07-15 10:38:03
  * @Description:
  */
 #ifndef CPU_H
@@ -80,7 +80,7 @@ void segment_desc_set(int selector, uint32_t base, uint32_t limit, uint16_t attr
  * @param {uint16_t} attr 属性
  * @return {*} void
  */
-void gate_desc_set(gate_desc_t *desc, uint16_t selector, uint32_t offset, uint16_t attr);
+void gate_desc_set(gate_desc_t* desc, uint16_t selector, uint32_t offset, uint16_t attr);
 
 void cpu_init(void);
 
