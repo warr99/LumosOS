@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-15 09:50:54
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-15 16:10:06
+ * @LastEditTime: 2023-07-15 17:19:19
  * @Description:
  */
 #include "cpu/irq.h"
@@ -25,6 +25,24 @@ void irq_init(void) {
     }
 
     irq_install(IRQ0_DE, (irq_handler_t)exception_handler_divider);
+    irq_install(IRQ1_DB, (irq_handler_t)exception_handler_Debug);
+    irq_install(IRQ2_NMI, (irq_handler_t)exception_handler_NMI);
+    irq_install(IRQ3_BP, (irq_handler_t)exception_handler_breakpoint);
+    irq_install(IRQ4_OF, (irq_handler_t)exception_handler_overflow);
+    irq_install(IRQ5_BR, (irq_handler_t)exception_handler_bound_range);
+    irq_install(IRQ6_UD, (irq_handler_t)exception_handler_invalid_opcode);
+    irq_install(IRQ7_NM, (irq_handler_t)exception_handler_device_unavailable);
+    irq_install(IRQ8_DF, (irq_handler_t)exception_handler_double_fault);
+    irq_install(IRQ10_TS, (irq_handler_t)exception_handler_invalid_tss);
+    irq_install(IRQ11_NP, (irq_handler_t)exception_handler_segment_not_present);
+    irq_install(IRQ12_SS, (irq_handler_t)exception_handler_stack_segment_fault);
+    irq_install(IRQ13_GP, (irq_handler_t)exception_handler_general_protection);
+    irq_install(IRQ14_PF, (irq_handler_t)exception_handler_page_fault);
+    irq_install(IRQ16_MF, (irq_handler_t)exception_handler_fpu_error);
+    irq_install(IRQ17_AC, (irq_handler_t)exception_handler_alignment_check);
+    irq_install(IRQ18_MC, (irq_handler_t)exception_handler_machine_check);
+    irq_install(IRQ19_XM, (irq_handler_t)exception_handler_smd_exception);
+    irq_install(IRQ20_VE, (irq_handler_t)exception_handler_virtual_exception);
 
     lidt((uint32_t)idt_table, sizeof(idt_table));
 }
@@ -45,6 +63,7 @@ int irq_install(int irq_num, irq_handler_t handler) {
  */
 static void do_default_handler(exception_frame_t* frame, const char* message) {
     for (;;) {
+        hlt();
     }
 }
 
@@ -54,4 +73,76 @@ void do_handler_unknown(exception_frame_t* frame) {
 
 void do_handler_divider(exception_frame_t* frame) {
     do_default_handler(frame, "Divider Exception");
+}
+
+void do_handler_Debug(exception_frame_t* frame) {
+    do_default_handler(frame, "Debug Exception");
+}
+
+void do_handler_NMI(exception_frame_t* frame) {
+    do_default_handler(frame, "NMI Interrupt.");
+}
+
+void do_handler_breakpoint(exception_frame_t* frame) {
+    do_default_handler(frame, "Breakpoint.");
+}
+
+void do_handler_overflow(exception_frame_t* frame) {
+    do_default_handler(frame, "Overflow.");
+}
+
+void do_handler_bound_range(exception_frame_t* frame) {
+    do_default_handler(frame, "BOUND Range Exceeded.");
+}
+
+void do_handler_invalid_opcode(exception_frame_t* frame) {
+    do_default_handler(frame, "Invalid Opcode.");
+}
+
+void do_handler_device_unavailable(exception_frame_t* frame) {
+    do_default_handler(frame, "Device Not Available.");
+}
+
+void do_handler_double_fault(exception_frame_t* frame) {
+    do_default_handler(frame, "Double Fault.");
+}
+
+void do_handler_invalid_tss(exception_frame_t* frame) {
+    do_default_handler(frame, "Invalid TSS");
+}
+
+void do_handler_segment_not_present(exception_frame_t* frame) {
+    do_default_handler(frame, "Segment Not Present.");
+}
+
+void do_handler_stack_segment_fault(exception_frame_t* frame) {
+    do_default_handler(frame, "Stack-Segment Fault.");
+}
+
+void do_handler_general_protection(exception_frame_t* frame) {
+    do_default_handler(frame, "General Protection.");
+}
+
+void do_handler_page_fault(exception_frame_t* frame) {
+    do_default_handler(frame, "Page Fault.");
+}
+
+void do_handler_fpu_error(exception_frame_t* frame) {
+    do_default_handler(frame, "X87 FPU Floating Point Error.");
+}
+
+void do_handler_alignment_check(exception_frame_t* frame) {
+    do_default_handler(frame, "Alignment Check.");
+}
+
+void do_handler_machine_check(exception_frame_t* frame) {
+    do_default_handler(frame, "Machine Check.");
+}
+
+void do_handler_smd_exception(exception_frame_t* frame) {
+    do_default_handler(frame, "SIMD Floating Point Exception.");
+}
+
+void do_handler_virtual_exception(exception_frame_t* frame) {
+    do_default_handler(frame, "Virtualization Exception.");
 }
