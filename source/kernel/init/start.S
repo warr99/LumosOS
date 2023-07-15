@@ -38,8 +38,13 @@ exception_handler_unknown:
     push %fs
     push %gs
 
+    push %esp
+
     // 中断处理
     call do_handler_unknown
+
+    // add $(1*4), %esp -> 一个栈的单元大小为 4 ,将 esp 的值 +4 相当于将栈顶指针往栈底的方向移动一个单元
+    pop %esp
 
     // 恢复
     pop %gs

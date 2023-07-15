@@ -1,3 +1,10 @@
+/*
+ * @Author: warrior
+ * @Date: 2023-07-15 09:50:54
+ * @LastEditors: warrior
+ * @LastEditTime: 2023-07-15 14:26:59
+ * @Description:
+ */
 #include "cpu/irq.h"
 #include "comm/cpu_instr.h"
 #include "cpu/cpu.h"
@@ -20,15 +27,16 @@ void irq_init(void) {
 }
 
 /**
- * @description: 默认的异常处理
- * @param {const* char} message 错误信息
- * @return {*} void
+ * @description:
+ * @param {exception_frame_t*} frame
+ * @param {char*} message 错误信息
+ * @return {*}
  */
-static void do_default_handler(const char* message) {
+static void do_default_handler(exception_frame_t* frame, const char* message) {
     for (;;) {
     }
 }
 
-void do_handler_unknown(void) {
-    do_default_handler("unknown exception");
+void do_handler_unknown(exception_frame_t* frame) {
+    do_default_handler(frame, "unknown exception");
 }
