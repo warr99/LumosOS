@@ -1,3 +1,10 @@
+/*
+ * @Author: warrior
+ * @Date: 2023-07-13 14:57:41
+ * @LastEditors: warrior
+ * @LastEditTime: 2023-07-15 09:43:38
+ * @Description:
+ */
 #include "cpu/cpu.h"
 #include "comm/cpu_instr.h"
 #include "os_cfg.h"
@@ -20,6 +27,14 @@ void segment_desc_set(int selector, uint32_t base, uint32_t limit, uint16_t attr
     desc->attr = attr | (((limit >> 16) & 0xF) << 8);
     desc->base31_24 = (base >> 24) & 0xFF;
 }
+
+void gate_desc_set(gate_desc_t* desc, uint16_t selector, uint32_t offset, uint16_t attr) {
+    desc->offset15_0 = offset & 0xFFFF;
+    desc->selector = selector;
+    desc->attr = attr;
+    desc->offset31_16 = (offset >> 16) & 0xFFFF;
+}
+
 void gdt_init(void) {
     for (int i = 0; i < GDT_TABLE_SIZE; i++) {
         segment_desc_set(i * sizeof(segment_desc_t), 0, 0, 0);
@@ -34,6 +49,7 @@ void gdt_init(void) {
                      SEG_P_PRESENT | SEG_DPL0 | SEG_S_NORMAL | SEG_TYPE_DATA | SEG_TYPE_RW | SEG_D | SEG_G);
     lgdt((uint32_t)gdt_table, sizeof(gdt_table));
 }
+
 void cpu_init(void) {
     gdt_init();
 }
