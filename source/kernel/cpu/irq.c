@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-15 09:50:54
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-16 11:56:15
+ * @LastEditTime: 2023-07-16 16:53:14
  * @Description:
  */
 #include "cpu/irq.h"
@@ -164,30 +164,34 @@ void do_handler_virtual_exception(exception_frame_t* frame) {
     do_default_handler(frame, "Virtualization Exception.");
 }
 
-void irq_disable(int irq_num) {
-    if (irq_num < IRQ_PIC_START) {
-        return;
-    }
-    irq_num -= IRQ_PIC_START;
-    if (irq_num < 8) {
-        uint8_t mask = inb(PIC0_IMR & ~(1 << irq_num));
-        outb(PIC1_IMR, mask);
-    } else {
-        uint8_t mask = inb(PIC1_IMR & ~(1 << irq_num));
-        outb(PIC1_IMR, mask);
-    }
-}
-
 void irq_enable(int irq_num) {
     if (irq_num < IRQ_PIC_START) {
         return;
     }
+
     irq_num -= IRQ_PIC_START;
     if (irq_num < 8) {
-        uint8_t mask = inb(PIC0_IMR | ~(1 << irq_num));
-        outb(PIC1_IMR, mask);
+        uint8_t mask = inb(PIC0_IMR) & ~(1 << irq_num);
+        outb(PIC0_IMR, mask);
     } else {
-        uint8_t mask = inb(PIC1_IMR | ~(1 << irq_num));
+        irq_num -= 8;
+        uint8_t mask = inb(PIC1_IMR) & ~(1 << irq_num);
+        outb(PIC1_IMR, mask);
+    }
+}
+
+void irq_disable(int irq_num) {
+    if (irq_num < IRQ_PIC_START) {
+        return;
+    }
+
+    irq_num -= IRQ_PIC_START;
+    if (irq_num < 8) {
+        uint8_t mask = inb(PIC0_IMR) | (1 << irq_num);
+        outb(PIC0_IMR, mask);
+    } else {
+        irq_num -= 8;
+        uint8_t mask = inb(PIC1_IMR) | (1 << irq_num);
         outb(PIC1_IMR, mask);
     }
 }
@@ -198,4 +202,15 @@ void irq_disable_global(void) {
 
 void irq_enable_global(void) {
     sti();
+}
+
+void pic_send_eoi(int irq_num) {
+    irq_num -= IRQ_PIC_START;
+
+    // 从片也可能需要发送EOI
+    if (irq_num >= 8) {
+        outb(PIC1_OCW2, PIC_OCW2_EOI);
+    }
+
+    outb(PIC0_OCW2, PIC_OCW2_EOI);
 }

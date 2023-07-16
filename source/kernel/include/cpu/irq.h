@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-15 09:49:17
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-16 11:58:14
+ * @LastEditTime: 2023-07-16 16:53:41
  * @Description: 中断处理相关
  */
 #ifndef IRQ_H
@@ -29,21 +29,28 @@
 #define IRQ20_VE 20
 #define IRQ21_CP 21
 
+#define IRQ0_TIMER 0x20
+
 #define PIC0_ICW1 0x20
 #define PIC0_ICW2 0x21
 #define PIC0_ICW3 0x21
 #define PIC0_ICW4 0x21
 #define PIC0_IMR 0x21
+#define PIC0_OCW2 0x20
 
 #define PIC1_ICW1 0xA0
 #define PIC1_ICW2 0xA1
 #define PIC1_ICW3 0xA1
 #define PIC1_ICW4 0xA1
 #define PIC1_IMR 0xA1
+#define PIC1_OCW2 0xA0
 
 #define PIC_ICW1_ALWASY_1 (1 << 4)
 #define PIC_ICW1_ICW4 (1 << 0)
 #define PIC0_ICW4_8086 (1 << 0)
+
+#define PIC_OCW2_EOI (1 << 5)
+
 #define IRQ_PIC_START 0x20
 
 #include "comm/types.h"
@@ -119,5 +126,7 @@ void irq_enable(int irq_num);
 void irq_disable_global(void);
 
 void irq_enable_global(void);
+
+void pic_send_eoi(int irq_num);
 
 #endif
