@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-15 09:49:17
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-16 11:22:27
+ * @LastEditTime: 2023-07-16 11:58:14
  * @Description: 中断处理相关
  */
 #ifndef IRQ_H
@@ -71,26 +71,53 @@ typedef void (*irq_handler_t)(exception_frame_t* frame);
 void irq_init(void);
 
 void exception_handler_unknown(void);
+
 void exception_handler_divider(void);
+
 void exception_handler_Debug(void);
+
 void exception_handler_NMI(void);
+
 void exception_handler_breakpoint(void);
+
 void exception_handler_overflow(void);
+
 void exception_handler_bound_range(void);
+
 void exception_handler_invalid_opcode(void);
+
 void exception_handler_device_unavailable(void);
+
 void exception_handler_double_fault(void);
+
 void exception_handler_invalid_tss(void);
+
 void exception_handler_segment_not_present(void);
+
 void exception_handler_stack_segment_fault(void);
+
 void exception_handler_general_protection(void);
+
 void exception_handler_page_fault(void);
+
 void exception_handler_fpu_error(void);
+
 void exception_handler_alignment_check(void);
+
 void exception_handler_machine_check(void);
+
 void exception_handler_smd_exception(void);
+
 void exception_handler_virtual_exception(void);
 
 int irq_install(int irq_num, irq_handler_t handler);
+
+void irq_disable(int irq_num);
+
+void irq_enable(int irq_num);
+
+void irq_disable_global(void);
+
+void irq_enable_global(void);
 
 #endif

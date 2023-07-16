@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-15 09:50:54
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-16 11:31:24
+ * @LastEditTime: 2023-07-16 11:56:15
  * @Description:
  */
 #include "cpu/irq.h"
@@ -162,4 +162,40 @@ void do_handler_smd_exception(exception_frame_t* frame) {
 
 void do_handler_virtual_exception(exception_frame_t* frame) {
     do_default_handler(frame, "Virtualization Exception.");
+}
+
+void irq_disable(int irq_num) {
+    if (irq_num < IRQ_PIC_START) {
+        return;
+    }
+    irq_num -= IRQ_PIC_START;
+    if (irq_num < 8) {
+        uint8_t mask = inb(PIC0_IMR & ~(1 << irq_num));
+        outb(PIC1_IMR, mask);
+    } else {
+        uint8_t mask = inb(PIC1_IMR & ~(1 << irq_num));
+        outb(PIC1_IMR, mask);
+    }
+}
+
+void irq_enable(int irq_num) {
+    if (irq_num < IRQ_PIC_START) {
+        return;
+    }
+    irq_num -= IRQ_PIC_START;
+    if (irq_num < 8) {
+        uint8_t mask = inb(PIC0_IMR | ~(1 << irq_num));
+        outb(PIC1_IMR, mask);
+    } else {
+        uint8_t mask = inb(PIC1_IMR | ~(1 << irq_num));
+        outb(PIC1_IMR, mask);
+    }
+}
+
+void irq_disable_global(void) {
+    cli();
+}
+
+void irq_enable_global(void) {
+    sti();
 }
