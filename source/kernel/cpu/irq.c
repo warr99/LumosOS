@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-15 09:50:54
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-15 17:19:19
+ * @LastEditTime: 2023-07-16 11:31:24
  * @Description:
  */
 #include "cpu/irq.h"
@@ -18,6 +18,21 @@ void exception_handler_unknown(void);
  * 中断向量表
  */
 static gate_desc_t idt_table[IDT_TABLE_NR];
+
+static void init_pic(void) {
+    outb(PIC0_ICW1, PIC_ICW1_ALWASY_1 | PIC_ICW1_ICW4);
+    outb(PIC0_ICW2, IRQ_PIC_START);
+    outb(PIC0_ICW3, 1 << 2);
+    outb(PIC0_ICW4, PIC0_ICW4_8086);
+
+    outb(PIC1_ICW1, PIC_ICW1_ALWASY_1 | PIC_ICW1_ICW4);
+    outb(PIC1_ICW2, IRQ_PIC_START + 8);
+    outb(PIC1_ICW3, 2);
+    outb(PIC1_ICW4, PIC0_ICW4_8086);
+
+    outb(PIC0_IMR, 0xFF & ~(1 << 2));
+    outb(PIC1_IMR, 0xff);
+}
 
 void irq_init(void) {
     for (int i = 0; i < IDT_TABLE_NR; i++) {
@@ -45,6 +60,8 @@ void irq_init(void) {
     irq_install(IRQ20_VE, (irq_handler_t)exception_handler_virtual_exception);
 
     lidt((uint32_t)idt_table, sizeof(idt_table));
+
+    init_pic();
 }
 
 int irq_install(int irq_num, irq_handler_t handler) {
