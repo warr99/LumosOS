@@ -3,7 +3,7 @@
  * @Date: 2023-07-13 15:49:49
  * @LastEditors: warrior
  * @LastEditTime: 2023-07-16 17:25:31
- * @Description: 
+ * @Description:
  */
 #ifndef OS_CFG_H
 #define OS_CFG_H
@@ -14,4 +14,7 @@
 #define KERNEL_STACK_SIZE (8 * 1024)  // 内核栈
 
 #define OS_TICKS_MS 10
+
+#define OS_VERSION "1.0.0"
+
 #endif

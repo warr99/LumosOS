@@ -63,7 +63,7 @@ typedef struct _exception_frame_t {
 } exception_frame_t;
 
 /**
- * @description: 定义了一个函数指针类型 irq_handler_t,
+ * @brief: 定义了一个函数指针类型 irq_handler_t,
  * 指向一个参数为 exception_frame_t* 类型的函数
  * 这意味着该函数类型可以用于处理异常
  * @param {exception_frame_t*} frame exception_frame_t
@@ -72,7 +72,7 @@ typedef struct _exception_frame_t {
 typedef void (*irq_handler_t)(exception_frame_t* frame);
 
 /**
- * @description: 初始化中断向量表
+ * @brief: 初始化中断向量表
  * @return {void}
  */
 void irq_init(void);
