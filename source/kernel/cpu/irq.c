@@ -2,13 +2,14 @@
  * @Author: warrior
  * @Date: 2023-07-15 09:50:54
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-16 16:53:14
+ * @LastEditTime: 2023-07-17 21:12:59
  * @Description:
  */
 #include "cpu/irq.h"
 #include "comm/cpu_instr.h"
 #include "cpu/cpu.h"
 #include "os_cfg.h"
+#include "tools/log.h"
 
 #define IDT_TABLE_NR 128
 
@@ -19,7 +20,26 @@ void exception_handler_unknown(void);
  */
 static gate_desc_t idt_table[IDT_TABLE_NR];
 
-static void init_pic(void) {
+static void dump_core_regs(exception_frame_t* frame) {
+    log_printf("IRQ: %d, error code: %d.", frame->num, frame->error_code);
+    log_printf("CS: %d\n\rDS: %d\n\rES:%d\n\rSS:%d\n\rFS:%d\n\rGS:%d",
+               frame->cs, frame->ds, frame->es, frame->ds, frame->ds, frame->gs);
+    log_printf(
+        "EAX:0x%x\n\r"
+        "EBX:0x%x\n\r"
+        "ECX:0x%x\n\r"
+        "EDX:0x%x\n\r"
+        "EDI:0x%x\n\r"
+        "ESI:0x%x\n\r"
+        "EBP:0x%x\n\r"
+        "ESP:0x%x\n\r",
+        frame->eax, frame->ebx, frame->ecx, frame->edx,
+        frame->edi, frame->esi, frame->ebp, frame->esp);
+    log_printf("EIP:0x%x\n\rEFLAGS:0x%x\n\r", frame->eip, frame->eflags);
+}
+
+static void
+init_pic(void) {
     outb(PIC0_ICW1, PIC_ICW1_ALWASY_1 | PIC_ICW1_ICW4);
     outb(PIC0_ICW2, IRQ_PIC_START);
     outb(PIC0_ICW3, 1 << 2);
@@ -79,6 +99,9 @@ int irq_install(int irq_num, irq_handler_t handler) {
  * @return {*}
  */
 static void do_default_handler(exception_frame_t* frame, const char* message) {
+    log_printf("----------------------------");
+    log_printf("IRQ/Exception: %s", message);
+    dump_core_regs(frame);
     for (;;) {
         hlt();
     }

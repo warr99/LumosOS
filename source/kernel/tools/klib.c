@@ -96,10 +96,10 @@ int kernel_memcmp(void* d1, void* d2, int size) {
     return 0;
 }
 
-void kernel_itoa(char * buf, int num, int base) {
+void kernel_itoa(char* buf, int num, int base) {
     // 转换字符索引[-15, -14, ...-1, 0, 1, ...., 14, 15]
-    static const char * num2ch = {"FEDCBA9876543210123456789ABCDEF"};
-    char * p = buf;
+    static const char* num2ch = {"FEDCBA9876543210123456789ABCDEF"};
+    char* p = buf;
     int old_num = num;
 
     // 仅支持部分进制
@@ -132,7 +132,7 @@ void kernel_itoa(char * buf, int num, int base) {
     *p-- = '\0';
 
     // 将转换结果逆序，生成最终的结果
-    char * start = (!signed_num) ? buf : buf + 1;
+    char* start = (!signed_num) ? buf : buf + 1;
     while (start < p) {
         char ch = *start;
         *start = *p;
@@ -144,12 +144,11 @@ void kernel_itoa(char * buf, int num, int base) {
 void kernel_vsprintf(char* buffer, const char* fmt, va_list args) {
     enum { NORMAL,
            READ_FMT } state = NORMAL;
-
     char ch;
     char* curr = buffer;
-
     while ((ch = *fmt++)) {
-        switch ((state)) {
+        switch (state) {
+            // 普通字符
             case NORMAL:
                 if (ch == '%') {
                     state = READ_FMT;
@@ -157,6 +156,7 @@ void kernel_vsprintf(char* buffer, const char* fmt, va_list args) {
                     *curr++ = ch;
                 }
                 break;
+            // 格式化控制字符，只支持部分
             case READ_FMT:
                 if (ch == 'd') {
                     int num = va_arg(args, int);
@@ -177,8 +177,6 @@ void kernel_vsprintf(char* buffer, const char* fmt, va_list args) {
                     }
                 }
                 state = NORMAL;
-                break;
-            default:
                 break;
         }
     }
