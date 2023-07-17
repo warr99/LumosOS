@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-12 19:56:55
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-16 16:41:56
+ * @LastEditTime: 2023-07-17 22:23:06
  * @Description:
  */
 
@@ -12,9 +12,12 @@
 #include "cpu/irq.h"
 #include "dev/time.h"
 #include "os_cfg.h"
+#include "tools/klib.h"
 #include "tools/log.h"
 
 void kernel_init(boot_info_t* boot_info) {
+    ASSERT(boot_info->ram_region_count != 0);
+
     cpu_init();
     log_init();
     irq_init();

@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-17 13:17:47
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-17 21:00:16
+ * @LastEditTime: 2023-07-17 22:25:49
  * @Description: 内核依赖的工具类(字符串 内存操作)
  */
 #ifndef KLIB_h
@@ -76,4 +76,15 @@ void kernel_itoa(char* buf, int num, int base);
 void kernel_vsprintf(char* buf, const char* fmt, va_list args);
 
 void kernel_sprintf(char* buf, const char* fmt, ...);
+
+#ifndef RELEASE
+
+#define ASSERT(expr) \
+    if (!(expr))    \
+    pannic(__FILE__, __LINE__, __func__, #expr)
+void pannic(const char* file, int line, const char* func, const char* cond);
+#else
+#define ASSERT() ((void)0)
+#endif
+
 #endif
