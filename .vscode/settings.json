@@ -17,7 +17,8 @@
         "elf.h": "c",
         "irq.h": "c",
         "cpu.h": "c",
-        "time.h": "c"
+        "time.h": "c",
+        "stdarg.h": "c"
     },
     "fileheader.configObj": {
         "createFileTime": true,

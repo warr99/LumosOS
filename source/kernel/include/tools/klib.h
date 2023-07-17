@@ -2,14 +2,14 @@
  * @Author: warrior
  * @Date: 2023-07-17 13:17:47
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-17 15:28:12
+ * @LastEditTime: 2023-07-17 16:28:31
  * @Description: 内核依赖的工具类(字符串 内存操作)
  */
 #ifndef KLIB_h
 #define KLIB_h
 
-#include "comm/types.h"
 #include <stdarg.h>
+#include "comm/types.h"
 
 /**
  * @brief: 复制字符串
@@ -71,5 +71,9 @@ void kernel_memset(void* dest, uint8_t v, int size);
  */
 int kernel_memcmp(void* d1, void* d2, int size);
 
+void kernel_itoa(char * buf, int num, int base) 
+
 void kernel_vsprintf(char* buf, const char* fmt, va_list args);
+
+void kernel_sprintf(char* buf, const char* fmt, ...);
 #endif

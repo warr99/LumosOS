@@ -11,8 +11,8 @@
 #include "cpu/cpu.h"
 #include "cpu/irq.h"
 #include "dev/time.h"
-#include "tools/log.h"
 #include "os_cfg.h"
+#include "tools/log.h"
 
 void kernel_init(boot_info_t* boot_info) {
     cpu_init();
@@ -24,7 +24,7 @@ void kernel_init(boot_info_t* boot_info) {
 void init_main(void) {
     log_printf("Kernel is running ...");
     log_printf("Version: %s", OS_VERSION);
-    // int i = 3 / 0;
+    log_printf("%d %d %x %c", -123, 123, 0x32, 'c');
     // irq_enable_global();
     for (;;) {
     }
