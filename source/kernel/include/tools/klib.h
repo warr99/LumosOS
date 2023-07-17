@@ -2,13 +2,14 @@
  * @Author: warrior
  * @Date: 2023-07-17 13:17:47
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-17 14:08:21
+ * @LastEditTime: 2023-07-17 15:28:12
  * @Description: 内核依赖的工具类(字符串 内存操作)
  */
 #ifndef KLIB_h
 #define KLIB_h
 
 #include "comm/types.h"
+#include <stdarg.h>
 
 /**
  * @brief: 复制字符串
@@ -69,4 +70,6 @@ void kernel_memset(void* dest, uint8_t v, int size);
  * @return {int} 不一样返回1,一样返回0
  */
 int kernel_memcmp(void* d1, void* d2, int size);
+
+void kernel_vsprintf(char* buf, const char* fmt, va_list args);
 #endif
