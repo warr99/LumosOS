@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-18 17:36:53
+ * @LastEditTime: 2023-07-18 21:43:31
  * @Description:
  */
 #include "core/task.h"
@@ -45,7 +45,12 @@ int task_init(task_t* task, uint32_t entry, uint32_t esp) {
     }
     return 0;
 }
-
+/**
+ * @brief: 任务切换
+ * @param {uint32_t**} from 源任务的任务控制块中保存栈顶指针的地址,用于将源任务的栈顶指针保存到该地址中
+ * @param {uint32_t*} to 目标任务的任务控制块中保存栈顶指针的值,用于跳转到目标任务的栈顶
+ * @return {*}
+ */
 void simple_switch(uint32_t** from, uint32_t* to);
 
 void task_switch(task_t* from, task_t* to) {

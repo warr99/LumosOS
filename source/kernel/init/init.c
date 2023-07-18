@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-12 19:56:55
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-18 15:28:26
+ * @LastEditTime: 2023-07-18 20:33:57
  * @Description:
  */
 
@@ -42,7 +42,7 @@ void init_main(void) {
 
     task_init(&init_task, (uint32_t)init_task_entry, (uint32_t)&init_task_stack[1024]);
     task_init(&first_task, (uint32_t)0, 0);
-    write_tr(first_task.tss_sel);
+    // write_tr(first_task.tss_sel);
 
     int count = 0;
     for (;;) {

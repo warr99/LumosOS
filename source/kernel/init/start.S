@@ -94,9 +94,9 @@ exception_handler timer, 0x20, 0
     .text
     .global simple_switch
  simple_switch:
-    // 取出前一个任务的栈顶指针(from)
+    // 取出源任务的栈顶指针的地址
     mov 4(%esp), %eax
-    // 取出后一个任务的栈顶指针(to)
+    // 取出后一个任务的栈顶指针的值
     mov 8(%esp), %edx
 
     // 将需要保存的寄存器入栈
@@ -104,10 +104,11 @@ exception_handler timer, 0x20, 0
     push %ebx
     push %esi
     push %edi
-    // 保存前一个任务的栈顶指针到 %eax ,方便切换回来
+    // 保存源任务栈顶的地址保存到 %eax 的中保存的地址
+    // 也就是设置 task->stack 的值,注意: %eax 保存的是 task->stack 所在的地址
     mov %esp,(%eax)
 
-    // 将后一个任务的栈顶指针给 %esp (切换到后一个函数的栈)
+    // 将目标任务栈顶的地址给到 %esp (切换到后一个函数的栈)
     mov %edx, %esp
     // 从后一个任务的栈中恢复寄存器的值
     pop %edi
