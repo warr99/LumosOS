@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-15 09:50:54
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-17 21:12:59
+ * @LastEditTime: 2023-07-18 09:33:13
  * @Description:
  */
 #include "cpu/irq.h"
@@ -23,7 +23,7 @@ static gate_desc_t idt_table[IDT_TABLE_NR];
 static void dump_core_regs(exception_frame_t* frame) {
     log_printf("IRQ: %d, error code: %d.", frame->num, frame->error_code);
     log_printf("CS: %d\n\rDS: %d\n\rES:%d\n\rSS:%d\n\rFS:%d\n\rGS:%d",
-               frame->cs, frame->ds, frame->es, frame->ds, frame->ds, frame->gs);
+               frame->cs, frame->ds, frame->es, frame->ds, frame->fs, frame->gs);
     log_printf(
         "EAX:0x%x\n\r"
         "EBX:0x%x\n\r"
@@ -38,7 +38,6 @@ static void dump_core_regs(exception_frame_t* frame) {
     log_printf("EIP:0x%x\n\rEFLAGS:0x%x\n\r", frame->eip, frame->eflags);
 }
 
-static void
 init_pic(void) {
     outb(PIC0_ICW1, PIC_ICW1_ALWASY_1 | PIC_ICW1_ICW4);
     outb(PIC0_ICW2, IRQ_PIC_START);
