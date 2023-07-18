@@ -38,7 +38,7 @@ static void dump_core_regs(exception_frame_t* frame) {
     log_printf("EIP:0x%x\n\rEFLAGS:0x%x\n\r", frame->eip, frame->eflags);
 }
 
-init_pic(void) {
+static void init_pic(void) {
     outb(PIC0_ICW1, PIC_ICW1_ALWASY_1 | PIC_ICW1_ICW4);
     outb(PIC0_ICW2, IRQ_PIC_START);
     outb(PIC0_ICW3, 1 << 2);

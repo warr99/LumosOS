@@ -90,4 +90,11 @@ static inline void far_jump(uint32_t selector, uint32_t offset) {
 static inline void hlt(void) {
     __asm__ __volatile__("hlt");
 }
+
+static inline void write_tr(uint16_t tll_sel) {
+    __asm__ __volatile__("ltr %%ax"
+                         :
+                         : "a"(tll_sel));
+}
+
 #endif

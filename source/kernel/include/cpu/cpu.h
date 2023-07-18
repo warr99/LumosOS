@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-13 14:49:44
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-18 10:04:45
+ * @LastEditTime: 2023-07-18 15:02:43
  * @Description:
  */
 #ifndef CPU_H
@@ -40,6 +40,8 @@ typedef struct _tss_t {
     uint32_t iomap;
 } tss_t;
 
+#define EFLGAGS DEFAULT(1 << 1)
+#define EFLAGS_IF (1 << 9)
 #pragma pack()
 
 #define SEG_G (1 << 15)         // 设置段界限的单位，1-4KB，0-字节
@@ -95,4 +97,7 @@ void gate_desc_set(gate_desc_t* desc, uint16_t selector, uint32_t offset, uint16
 
 void cpu_init(void);
 
+int gdt_alloc_desc();
+
+void switch_to_tss(int tss_sel);
 #endif
