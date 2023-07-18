@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-13 14:49:44
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-15 10:38:03
+ * @LastEditTime: 2023-07-18 10:04:45
  * @Description:
  */
 #ifndef CPU_H
@@ -28,6 +28,17 @@ typedef struct _gate_desc_t {
     uint16_t attr;
     uint16_t offset31_16;
 } gate_desc_t;
+
+// 任务状态表项
+typedef struct _tss_t {
+    uint32_t pre_link;
+    uint32_t esp0, ss0, esp1, ss1, esp2, ss2;                      // 特权级相关
+    uint32_t cr3;                                                  // 当前任务所使用的页表
+    uint32_t eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi;  // 寄存器
+    uint32_t es, cs, ss, ds, fs, gs;                               // 段寄存器
+    uint32_t ldt;
+    uint32_t iomap;
+} tss_t;
 
 #pragma pack()
 
