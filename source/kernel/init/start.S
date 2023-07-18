@@ -89,3 +89,30 @@ exception_handler smd_exception, 19, 0
 exception_handler virtual_exception, 20, 0
 
 exception_handler timer, 0x20, 0
+
+
+    .text
+    .global simple_switch
+ simple_switch:
+    // 取出前一个任务的栈顶指针(from)
+    mov 4(%esp), %eax
+    // 取出后一个任务的栈顶指针(to)
+    mov 8(%esp), %edx
+
+    // 将需要保存的寄存器入栈
+    push %ebp
+    push %ebx
+    push %esi
+    push %edi
+    // 保存前一个任务的栈顶指针到 %eax ,方便切换回来
+    mov %esp,(%eax)
+
+    // 将后一个任务的栈顶指针给 %esp (切换到后一个函数的栈)
+    mov %edx, %esp
+    // 从后一个任务的栈中恢复寄存器的值
+    pop %edi
+    pop %esi
+    pop %ebx
+    pop %ebp
+
+    ret
