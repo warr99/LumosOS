@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-18 21:43:31
+ * @LastEditTime: 2023-07-19 10:26:03
  * @Description:
  */
 #include "core/task.h"
@@ -33,16 +33,16 @@ static int tss_init(task_t* task, uint32_t entry, uint32_t esp) {
 int task_init(task_t* task, uint32_t entry, uint32_t esp) {
     ASSERT(task != (task_t*)0);
 
-    // tss_init(task, entry, esp);
-    uint32_t* pesp = (uint32_t*)esp;
-    if (pesp) {
-        *(--pesp) = entry;
-        *(--pesp) = 0;
-        *(--pesp) = 0;
-        *(--pesp) = 0;
-        *(--pesp) = 0;
-        task->stack=pesp;
-    }
+    tss_init(task, entry, esp);
+    // uint32_t* pesp = (uint32_t*)esp;
+    // if (pesp) {
+    //     *(--pesp) = entry;
+    //     *(--pesp) = 0;
+    //     *(--pesp) = 0;
+    //     *(--pesp) = 0;
+    //     *(--pesp) = 0;
+    //     task->stack=pesp;
+    // }
     return 0;
 }
 /**
@@ -54,6 +54,6 @@ int task_init(task_t* task, uint32_t entry, uint32_t esp) {
 void simple_switch(uint32_t** from, uint32_t* to);
 
 void task_switch(task_t* from, task_t* to) {
-    // switch_to_tss(to->tss_sel);
-     simple_switch(&from->stack, to->stack);
+    switch_to_tss(to->tss_sel);
+    //  simple_switch(&from->stack, to->stack);
 }

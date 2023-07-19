@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:29:35
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-18 20:39:09
+ * @LastEditTime: 2023-07-19 10:25:29
  * @Description:
  */
 #ifndef TSAK_H
@@ -12,7 +12,7 @@
 #include "cpu/cpu.h"
 
 typedef struct _task_t {
-    uint32_t* stack;
+    // uint32_t* stack;
     tss_t tss;
     int tss_sel;
 } task_t;
