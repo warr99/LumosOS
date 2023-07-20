@@ -82,4 +82,14 @@ void task_set_ready(task_t* task);
  */
 void task_set_block(task_t* task);
 
+/**
+ * @brief: 使得当前任务主动让出CPU
+ * @return {*} 0
+ */
+int sys_sched_yield(void);
+
+void task_dispatch(void);
+
+task_t* task_current(void);
+
 #endif

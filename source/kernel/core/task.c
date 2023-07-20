@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-20 11:36:01
+ * @LastEditTime: 2023-07-20 14:27:28
  * @Description:
  */
 #include "core/task.h"
@@ -85,4 +85,34 @@ void task_set_ready(task_t* task) {
 
 void task_set_block(task_t* task) {
     list_remove(&task_mananger.task_list, &task->run_node);
+}
+
+task_t* task_current(void) {
+    return task_mananger.curr_task;
+}
+
+int sys_sched_yield(void) {
+    if (list_count(&task_mananger.ready_list) > 1) {
+        task_t* curr_task = task_current();
+        task_set_block(curr_task);
+        task_set_ready(curr_task);
+
+        task_dispatch();
+    }
+    return 0;
+}
+
+task_t* task_next_run(void) {
+    list_node_t* task_node = list_first(&task_mananger.ready_list);
+    return list_node_parent(task_node, task_t, run_node);
+}
+
+void task_dispatch(void) {
+    task_t* to = task_next_run();
+    if (to != task_mananger.curr_task) {
+        task_t* from = task_current();
+        task_mananger.curr_task = to;
+        to->state = TASK_RUNNING;
+        task_switch(from, to);
+    }
 }
