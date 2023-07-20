@@ -20,7 +20,8 @@
         "time.h": "c",
         "stdarg.h": "c",
         "log.h": "c",
-        "klib.h": "c"
+        "klib.h": "c",
+        "os_cfg.h": "c"
     },
     "fileheader.configObj": {
         "createFileTime": true,

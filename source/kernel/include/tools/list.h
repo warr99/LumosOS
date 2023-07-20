@@ -2,14 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-19 10:27:57
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-19 15:49:48
- * @Description:
- */
-/*
- * @Author: warrior
- * @Date: 2023-07-19 10:27:57
- * @LastEditors: warrior
- * @LastEditTime: 2023-07-19 11:57:00
+ * @LastEditTime: 2023-07-20 11:41:50
  * @Description:
  */
 #ifndef LIST_H
@@ -133,7 +126,7 @@ list_node_t* list_remove_first(list_t* list);
  */
 list_node_t* list_remove(list_t* list, list_node_t* node);
 
-#define offset_in_parent(parent_type, node_name) \ 
+#define offset_in_parent(parent_type, node_name) \
     ((uint32_t)(&((parent_type*)0)->node_name))
 
 #define parent_addr(node, parent_type, node_name) \

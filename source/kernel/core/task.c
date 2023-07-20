@@ -2,14 +2,17 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-19 10:26:03
+ * @LastEditTime: 2023-07-20 11:36:01
  * @Description:
  */
 #include "core/task.h"
+#include "comm/cpu_instr.h"
 #include "cpu/cpu.h"
 #include "os_cfg.h"
 #include "tools/klib.h"
 #include "tools/log.h"
+
+static task_mananger_t task_mananger;
 
 static int tss_init(task_t* task, uint32_t entry, uint32_t esp) {
     int tss_sel = gdt_alloc_desc();
@@ -30,21 +33,21 @@ static int tss_init(task_t* task, uint32_t entry, uint32_t esp) {
     return 0;
 }
 
-int task_init(task_t* task, uint32_t entry, uint32_t esp) {
+int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp) {
     ASSERT(task != (task_t*)0);
 
     tss_init(task, entry, esp);
-    // uint32_t* pesp = (uint32_t*)esp;
-    // if (pesp) {
-    //     *(--pesp) = entry;
-    //     *(--pesp) = 0;
-    //     *(--pesp) = 0;
-    //     *(--pesp) = 0;
-    //     *(--pesp) = 0;
-    //     task->stack=pesp;
-    // }
+
+    kernel_strncpy(task->name, name, TASK_NAME_SIZE);
+    task->state = TASK_CREATED;
+    list_node_init(&task->all_node);
+    list_node_init(&task->run_node);
+
+    task_set_ready(task);
+    list_insert_last(&task_mananger.task_list, &task->all_node);
     return 0;
 }
+
 /**
  * @brief: 任务切换
  * @param {uint32_t**} from 源任务的任务控制块中保存栈顶指针的地址,用于将源任务的栈顶指针保存到该地址中
@@ -53,7 +56,33 @@ int task_init(task_t* task, uint32_t entry, uint32_t esp) {
  */
 void simple_switch(uint32_t** from, uint32_t* to);
 
+void task_mananger_init(void) {
+    list_init(&task_mananger.ready_list);
+    list_init(&task_mananger.task_list);
+
+    task_mananger.curr_task = (task_t*)0;
+}
+
+task_t* get_first_task(void) {
+    return &task_mananger.first_task;
+}
+
+void task_first_init(void) {
+    task_init(&task_mananger.first_task, "first task", (uint32_t)0, 0);
+    write_tr(task_mananger.first_task.tss_sel);
+    task_mananger.curr_task = &task_mananger.first_task;
+}
+
 void task_switch(task_t* from, task_t* to) {
     switch_to_tss(to->tss_sel);
     //  simple_switch(&from->stack, to->stack);
+}
+
+void task_set_ready(task_t* task) {
+    list_insert_last(&task_mananger.task_list, &task->run_node);
+    task->state = TASK_READY;
+}
+
+void task_set_block(task_t* task) {
+    list_remove(&task_mananger.task_list, &task->run_node);
 }
