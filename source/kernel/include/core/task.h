@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:29:35
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-20 11:00:14
+ * @LastEditTime: 2023-07-20 16:25:26
  * @Description:
  */
 #ifndef TSAK_H
@@ -13,6 +13,7 @@
 #include "tools/list.h"
 
 #define TASK_NAME_SIZE 32
+#define TASK_TIME_SLICE_DEFAULT 10
 
 typedef struct _task_t {
     enum {
@@ -21,7 +22,9 @@ typedef struct _task_t {
         TASK_SLEEP,
         TASK_READY,
         TASK_WAITTING,
-    } state;                    // 任务状态
+    } state;  // 任务状态
+    int time_ticks;
+    int slice_ticks;
     char name[TASK_NAME_SIZE];  // 任务名称(唯一标识)
     list_node_t run_node;       // 作为就绪队列的节点
     list_node_t all_node;       // 作为进程队列的节点
@@ -91,5 +94,9 @@ int sys_sched_yield(void);
 void task_dispatch(void);
 
 task_t* task_current(void);
+
+void task_time_tick(void);
+
+void task_dispatch(void);
 
 #endif

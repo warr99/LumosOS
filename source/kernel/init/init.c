@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-12 19:56:55
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-20 14:04:17
+ * @LastEditTime: 2023-07-20 16:24:02
  * @Description:
  */
 
@@ -33,21 +33,21 @@ static uint32_t init_task_stack[1024];
 void init_task_entry(void) {
     int count = 0;
     for (;;) {
-        log_printf("init task: %d", count++);
-        sys_sched_yield();
+        log_printf("---------------init task: %d", count++);
     }
 }
 
 void init_main(void) {
     log_printf("Kernel is running ...");
-
+    
     task_init(&init_task, "init_task", (uint32_t)init_task_entry, (uint32_t)&init_task_stack[1024]);
     task_first_init();
+
+    irq_enable_global();
 
     int count = 0;
     for (;;) {
         log_printf("init main: %d", count++);
-        sys_sched_yield();
     }
 
     init_task_entry();

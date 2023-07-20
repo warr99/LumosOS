@@ -1,3 +1,10 @@
+/*
+ * @Author: warrior
+ * @Date: 2023-07-17 10:04:20
+ * @LastEditors: warrior
+ * @LastEditTime: 2023-07-20 17:10:59
+ * @Description: 
+ */
 #include "tools/log.h"
 #include <stdarg.h>
 #include "comm/cpu_instr.h"
@@ -32,5 +39,5 @@ void log_printf(const char* fmt, ...) {
     }
 
     outb(COM1_PORT, '\r');
-    outb(COM1_PORT, '\n');
+hjj    outb(COM1_PORT, '\n');
 }

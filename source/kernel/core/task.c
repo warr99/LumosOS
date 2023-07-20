@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-20 14:27:28
+ * @LastEditTime: 2023-07-20 16:35:08
  * @Description:
  */
 #include "core/task.h"
@@ -40,6 +40,8 @@ int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp) {
 
     kernel_strncpy(task->name, name, TASK_NAME_SIZE);
     task->state = TASK_CREATED;
+    task->time_ticks = TASK_TIME_SLICE_DEFAULT;
+    task->slice_ticks = task->time_ticks;
     list_node_init(&task->all_node);
     list_node_init(&task->run_node);
 
@@ -79,12 +81,12 @@ void task_switch(task_t* from, task_t* to) {
 }
 
 void task_set_ready(task_t* task) {
-    list_insert_last(&task_mananger.task_list, &task->run_node);
+    list_insert_last(&task_mananger.ready_list, &task->run_node);
     task->state = TASK_READY;
 }
 
 void task_set_block(task_t* task) {
-    list_remove(&task_mananger.task_list, &task->run_node);
+    list_remove(&task_mananger.ready_list, &task->run_node);
 }
 
 task_t* task_current(void) {
@@ -114,5 +116,15 @@ void task_dispatch(void) {
         task_mananger.curr_task = to;
         to->state = TASK_RUNNING;
         task_switch(from, to);
+    }
+}
+
+void task_time_tick(void) {
+    task_t* curr_task = task_current();
+    if (--curr_task->slice_ticks == 0) {
+        curr_task->slice_ticks = curr_task->time_ticks;
+        task_set_block(curr_task);
+        task_set_ready(curr_task);
+        task_dispatch();
     }
 }
