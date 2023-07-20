@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-11 21:07:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-15 10:12:01
+ * @LastEditTime: 2023-07-20 21:52:40
  * @Description: 汇编指令封装
  */
 #ifndef CPU_INSTR_H
@@ -97,4 +97,16 @@ static inline void write_tr(uint16_t tll_sel) {
                          : "a"(tll_sel));
 }
 
+static inline uint32_t read_eflags() {
+    uint32_t eflags;
+    __asm__ __volatile__("pushf\n\tpop %%eax"
+                         : "=a"(eflags));
+    return eflags;
+}
+
+static inline void write_eflags(uint32_t eflags) {
+    __asm__ __volatile__("push %%eax\n\tpopf"
+                         :
+                         : "a"(eflags));
+}
 #endif

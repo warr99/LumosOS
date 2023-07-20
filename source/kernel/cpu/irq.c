@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-15 09:50:54
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-18 09:33:13
+ * @LastEditTime: 2023-07-20 21:50:44
  * @Description:
  */
 #include "cpu/irq.h"
@@ -235,4 +235,14 @@ void pic_send_eoi(int irq_num) {
     }
 
     outb(PIC0_OCW2, PIC_OCW2_EOI);
+}
+
+irq_state_t irq_enter_protection() {
+    irq_state_t state = read_eflags();
+    irq_disable_global();
+    return state;
+}
+
+void irq_leave_protection(irq_state_t state) {
+    write_eflags(state);
 }

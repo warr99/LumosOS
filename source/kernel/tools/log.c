@@ -2,12 +2,13 @@
  * @Author: warrior
  * @Date: 2023-07-17 10:04:20
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-20 17:10:59
- * @Description: 
+ * @LastEditTime: 2023-07-20 21:51:53
+ * @Description:
  */
 #include "tools/log.h"
 #include <stdarg.h>
 #include "comm/cpu_instr.h"
+#include "cpu/irq.h"
 #include "tools/klib.h"
 
 #define COM1_PORT 0x3F8
@@ -31,6 +32,7 @@ void log_printf(const char* fmt, ...) {
     kernel_vsprintf(str_buf, fmt, args);
     va_end(args);
 
+    irq_state_t state = irq_enter_protection();
     const char* p = str_buf;
     while (*p != '\0') {
         while ((inb(COM1_PORT + 5) & (1 << 6)) == 0) {
@@ -39,5 +41,6 @@ void log_printf(const char* fmt, ...) {
     }
 
     outb(COM1_PORT, '\r');
-hjj    outb(COM1_PORT, '\n');
+    outb(COM1_PORT, '\n');
+    irq_leave_protection(state);
 }

@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-15 09:49:17
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-16 16:53:41
+ * @LastEditTime: 2023-07-20 21:31:28
  * @Description: 中断处理相关
  */
 #ifndef IRQ_H
@@ -128,5 +128,21 @@ void irq_disable_global(void);
 void irq_enable_global(void);
 
 void pic_send_eoi(int irq_num);
+
+
+typedef uint32_t irq_state_t;
+
+/**
+ * @brief: 进入保护状态
+ * @return {irq_state_t}
+ */
+irq_state_t irq_enter_protection(void);
+
+/**
+ * @brief: 退出保护状态
+ * @param {irq_state_t} state
+ * @return {*}
+ */
+void irq_leave_protection(irq_state_t state);
 
 #endif

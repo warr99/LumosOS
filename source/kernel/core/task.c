@@ -2,12 +2,13 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-20 16:35:08
+ * @LastEditTime: 2023-07-20 22:05:08
  * @Description:
  */
 #include "core/task.h"
 #include "comm/cpu_instr.h"
 #include "cpu/cpu.h"
+#include "cpu/irq.h"
 #include "os_cfg.h"
 #include "tools/klib.h"
 #include "tools/log.h"
@@ -35,18 +36,17 @@ static int tss_init(task_t* task, uint32_t entry, uint32_t esp) {
 
 int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp) {
     ASSERT(task != (task_t*)0);
-
     tss_init(task, entry, esp);
-
     kernel_strncpy(task->name, name, TASK_NAME_SIZE);
     task->state = TASK_CREATED;
     task->time_ticks = TASK_TIME_SLICE_DEFAULT;
     task->slice_ticks = task->time_ticks;
     list_node_init(&task->all_node);
     list_node_init(&task->run_node);
-
+    irq_state_t state = irq_enter_protection();
     task_set_ready(task);
     list_insert_last(&task_mananger.task_list, &task->all_node);
+    irq_leave_protection(state);
     return 0;
 }
 
@@ -94,6 +94,7 @@ task_t* task_current(void) {
 }
 
 int sys_sched_yield(void) {
+    irq_state_t state = irq_enter_protection();
     if (list_count(&task_mananger.ready_list) > 1) {
         task_t* curr_task = task_current();
         task_set_block(curr_task);
@@ -101,6 +102,7 @@ int sys_sched_yield(void) {
 
         task_dispatch();
     }
+    irq_leave_protection(state);
     return 0;
 }
 
@@ -110,6 +112,7 @@ task_t* task_next_run(void) {
 }
 
 void task_dispatch(void) {
+    irq_state_t state = irq_enter_protection();
     task_t* to = task_next_run();
     if (to != task_mananger.curr_task) {
         task_t* from = task_current();
@@ -117,6 +120,7 @@ void task_dispatch(void) {
         to->state = TASK_RUNNING;
         task_switch(from, to);
     }
+    irq_leave_protection(state);
 }
 
 void task_time_tick(void) {
