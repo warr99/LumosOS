@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-12 19:56:55
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-21 13:28:43
+ * @LastEditTime: 2023-07-21 15:00:49
  * @Description:
  */
 
@@ -36,8 +36,8 @@ static sem_t sem;
 void init_task_entry(void) {
     int count = 0;
     for (;;) {
-        sem_wait(&sem);
-        log_printf(">>>>> init task %d <<<<<", count++);
+        // sem_wait(&sem);
+        log_printf(">>>> init_task_entry()_%d <<<<", count++);
     }
 }
 
@@ -51,12 +51,12 @@ void init_main(void) {
 
     int count = 0;
     for (;;) {
-        log_printf("<<<<< init main %d >>>>>", count++);
-        if (count % 5 == 0) {
-            sem_notify(&sem);
-        }
-        sys_sleep(1000);
+        log_printf(">>>> init_main()_%d <<<<", count++);
+        // if (count % 5 == 0) {
+        //     sem_notify(&sem);
+        // }
+        // sys_sleep(1000);
     }
 
-    init_task_entry();
+    // init_task_entry();
 }

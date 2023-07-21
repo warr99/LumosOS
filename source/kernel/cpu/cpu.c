@@ -2,15 +2,17 @@
  * @Author: warrior
  * @Date: 2023-07-13 14:57:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-21 09:37:21
+ * @LastEditTime: 2023-07-21 14:26:49
  * @Description:
  */
 #include "cpu/cpu.h"
 #include "comm/cpu_instr.h"
 #include "cpu/irq.h"
+#include "ipc\mutex.h"
 #include "os_cfg.h"
 
 static segment_desc_t gdt_table[GDT_TABLE_SIZE];
+static mutex_t mutex;
 
 void segment_desc_set(int selector, uint32_t base, uint32_t limit, uint16_t attr) {
     // 将selector(偏移量)转化为表项的指针
@@ -37,15 +39,15 @@ void gate_desc_set(gate_desc_t* desc, uint16_t selector, uint32_t offset, uint16
 }
 
 int gdt_alloc_desc() {
-    irq_state_t state = irq_enter_protection();
+    mutex_lock(&mutex);
     for (int i = 1; i < GDT_TABLE_SIZE; i++) {
         segment_desc_t* desc = gdt_table + i;
         if (desc->attr == 0) {
-            irq_leave_protection(state);
+            mutex_unlock(&mutex);
             return i * sizeof(segment_desc_t);
         }
     }
-    irq_leave_protection(state);
+    mutex_unlock(&mutex);
     return -1;
 }
 
@@ -65,6 +67,7 @@ void gdt_init(void) {
 }
 
 void cpu_init(void) {
+    mutex_init(&mutex);
     gdt_init();
 }
 

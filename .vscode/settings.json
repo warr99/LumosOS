@@ -22,7 +22,8 @@
         "log.h": "c",
         "klib.h": "c",
         "os_cfg.h": "c",
-        "list.h": "c"
+        "list.h": "c",
+        "mutex.h": "c"
     },
     "fileheader.configObj": {
         "createFileTime": true,
