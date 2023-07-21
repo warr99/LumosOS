@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-20 22:05:08
+ * @LastEditTime: 2023-07-21 10:08:50
  * @Description:
  */
 #include "core/task.h"
@@ -41,6 +41,7 @@ int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp) {
     task->state = TASK_CREATED;
     task->time_ticks = TASK_TIME_SLICE_DEFAULT;
     task->slice_ticks = task->time_ticks;
+    task->sleep_ticks = 0;
     list_node_init(&task->all_node);
     list_node_init(&task->run_node);
     irq_state_t state = irq_enter_protection();
@@ -61,6 +62,7 @@ void simple_switch(uint32_t** from, uint32_t* to);
 void task_mananger_init(void) {
     list_init(&task_mananger.ready_list);
     list_init(&task_mananger.task_list);
+    list_init(&task_mananger.sleep_list);
 
     task_mananger.curr_task = (task_t*)0;
 }
@@ -131,4 +133,36 @@ void task_time_tick(void) {
         task_set_ready(curr_task);
         task_dispatch();
     }
+    list_node_t* curr = list_first(&task_mananger.sleep_list);
+    while (curr) {
+        list_node_t* next = list_node_next(curr);
+        task_t* task = list_node_parent(curr, task_t, run_node);
+        if (--task->sleep_ticks == 0) {
+            task_set_wakeup(task);
+            task_set_ready(task);
+        }
+        curr = next;
+    }
+    task_dispatch();
+}
+
+void task_set_sleep(task_t* task, uint32_t ticks) {
+    if (ticks == 0) {
+        return;
+    }
+    task->sleep_ticks = ticks;
+    task->state = TASK_SLEEP;
+    list_insert_last(&task_mananger.sleep_list, &task->run_node);
+}
+
+void task_set_wakeup(task_t* task) {
+    list_remove(&task_mananger.sleep_list, &task->run_node);
+}
+
+void sys_sleep(uint32_t ms) {
+    irq_state_t state = irq_enter_protection();
+    task_set_block(task_mananger.curr_task);
+    task_set_sleep(task_mananger.curr_task, (ms + (OS_TICKS_MS - 1)) / OS_TICKS_MS);
+    task_dispatch();
+    irq_leave_protection(state);
 }

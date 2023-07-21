@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-12 19:56:55
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-20 16:24:02
+ * @LastEditTime: 2023-07-21 10:10:32
  * @Description:
  */
 
@@ -33,13 +33,13 @@ static uint32_t init_task_stack[1024];
 void init_task_entry(void) {
     int count = 0;
     for (;;) {
-        log_printf("---------------init task: %d", count++);
+        // log_printf("-----init task-----: %d", count++);
     }
 }
 
 void init_main(void) {
     log_printf("Kernel is running ...");
-    
+
     task_init(&init_task, "init_task", (uint32_t)init_task_entry, (uint32_t)&init_task_stack[1024]);
     task_first_init();
 
@@ -47,7 +47,8 @@ void init_main(void) {
 
     int count = 0;
     for (;;) {
-        log_printf("init main: %d", count++);
+        log_printf("=====init main===== %d", count++);
+        sys_sleep(1000);
     }
 
     init_task_entry();

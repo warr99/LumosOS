@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:29:35
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-20 16:25:26
+ * @LastEditTime: 2023-07-21 09:48:45
  * @Description:
  */
 #ifndef TSAK_H
@@ -25,6 +25,7 @@ typedef struct _task_t {
     } state;  // 任务状态
     int time_ticks;
     int slice_ticks;
+    int sleep_ticks;            // 延时时长
     char name[TASK_NAME_SIZE];  // 任务名称(唯一标识)
     list_node_t run_node;       // 作为就绪队列的节点
     list_node_t all_node;       // 作为进程队列的节点
@@ -37,6 +38,7 @@ typedef struct _task_mananger_t {
 
     list_t ready_list;  // 就绪队列
     list_t task_list;   // 进程队列
+    list_t sleep_list;  // 睡眠队列
 
     task_t first_task;
 } task_mananger_t;
@@ -98,5 +100,11 @@ task_t* task_current(void);
 void task_time_tick(void);
 
 void task_dispatch(void);
+
+void task_set_sleep(task_t* task, uint32_t ticks);
+
+void task_set_wakeup(task_t* task);
+
+void sys_sleep(uint32_t ms);
 
 #endif
