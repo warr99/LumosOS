@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-12 19:56:55
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-21 10:34:15
+ * @LastEditTime: 2023-07-21 13:28:43
  * @Description:
  */
 
@@ -13,6 +13,7 @@
 #include "cpu/cpu.h"
 #include "cpu/irq.h"
 #include "dev/time.h"
+#include "ipc/sem.h"
 #include "os_cfg.h"
 #include "tools/klib.h"
 #include "tools/list.h"
@@ -30,12 +31,13 @@ void kernel_init(boot_info_t* boot_info) {
 static task_t first_task;
 static task_t init_task;
 static uint32_t init_task_stack[1024];
+static sem_t sem;
 
 void init_task_entry(void) {
     int count = 0;
     for (;;) {
-        log_printf("-----init task----- %d", count++);
-        sys_sleep(1000);
+        sem_wait(&sem);
+        log_printf(">>>>> init task %d <<<<<", count++);
     }
 }
 
@@ -44,12 +46,15 @@ void init_main(void) {
 
     task_init(&init_task, "init_task", (uint32_t)init_task_entry, (uint32_t)&init_task_stack[1024]);
     task_first_init();
-
+    sem_init(&sem, 0);
     irq_enable_global();
 
     int count = 0;
     for (;;) {
-        log_printf("=====init main===== %d", count++);
+        log_printf("<<<<< init main %d >>>>>", count++);
+        if (count % 5 == 0) {
+            sem_notify(&sem);
+        }
         sys_sleep(1000);
     }
 
