@@ -2,14 +2,14 @@
  * @Author: warrior
  * @Date: 2023-07-17 10:04:20
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-21 14:27:10
+ * @LastEditTime: 2023-07-21 21:34:51
  * @Description:
  */
 #include "tools/log.h"
 #include <stdarg.h>
 #include "comm/cpu_instr.h"
 #include "cpu/irq.h"
-#include "ipc\mutex.h"
+#include "ipc/mutex.h"
 #include "tools/klib.h"
 
 #define COM1_PORT 0x3F8
