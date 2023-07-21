@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:29:35
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-21 09:48:45
+ * @LastEditTime: 2023-07-21 13:09:08
  * @Description:
  */
 #ifndef TSAK_H
@@ -29,6 +29,7 @@ typedef struct _task_t {
     char name[TASK_NAME_SIZE];  // 任务名称(唯一标识)
     list_node_t run_node;       // 作为就绪队列的节点
     list_node_t all_node;       // 作为进程队列的节点
+    list_node_t wait_node;      // 作为等待队列的节点
     tss_t tss;
     int tss_sel;
 } task_t;
