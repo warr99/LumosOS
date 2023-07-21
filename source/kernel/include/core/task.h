@@ -33,7 +33,7 @@ typedef struct _task_t {
     int tss_sel;
 } task_t;
 
-typedef struct _task_mananger_t {
+typedef struct _task_manager_t {
     task_t* curr_task;
 
     list_t ready_list;  // 就绪队列
@@ -41,22 +41,23 @@ typedef struct _task_mananger_t {
     list_t sleep_list;  // 睡眠队列
 
     task_t first_task;
-} task_mananger_t;
+    task_t idle_task;  // 空闲进程
+} task_manager_t;
 
 /**
  * @brief: 任务管理器初始化
  * @return {*}
  */
-void task_mananger_init(void);
+void task_manager_init(void);
 
 /**
- * @brief: 初始化 task_mananger_t->first_task
+ * @brief: 初始化 task_manager_t->first_task
  * @return {*}
  */
 void task_first_init(void);
 
 /**
- * @brief: 取出 task_mananger_t->first_task
+ * @brief: 取出 task_manager_t->first_task
  * @return {task_t*} first_task
  */
 task_t* get_first_task(void);

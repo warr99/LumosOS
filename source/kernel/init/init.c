@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-12 19:56:55
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-21 10:10:32
+ * @LastEditTime: 2023-07-21 10:34:15
  * @Description:
  */
 
@@ -24,6 +24,7 @@ void kernel_init(boot_info_t* boot_info) {
     log_init();
     irq_init();
     time_init();
+    task_manager_init();
 }
 
 static task_t first_task;
@@ -33,7 +34,8 @@ static uint32_t init_task_stack[1024];
 void init_task_entry(void) {
     int count = 0;
     for (;;) {
-        // log_printf("-----init task-----: %d", count++);
+        log_printf("-----init task----- %d", count++);
+        sys_sleep(1000);
     }
 }
 
