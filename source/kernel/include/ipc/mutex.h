@@ -11,21 +11,21 @@ typedef struct _mutex_t {
 } mutex_t;
 
 /**
- * @brief: 互斥锁初始化
+ * @brief 互斥锁初始化
  * @param {mutex_t*} mutex 互斥锁
  * @return {*}
  */
 void mutex_init(mutex_t* mutex);
 
 /**
- * @brief: 上锁
+ * @brief 上锁
  * @param {mutex_t*} mutex 互斥锁
  * @return {*}
  */
 void mutex_lock(mutex_t* mutex);
 
 /**
- * @brief: 解锁
+ * @brief 解锁
  * @param {mutex_t*} mutex 互斥锁
  * @return {*}
  */

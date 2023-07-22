@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-12 19:56:55
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-21 15:00:49
+ * @LastEditTime: 2023-07-22 10:20:54
  * @Description:
  */
 
@@ -18,9 +18,11 @@
 #include "tools/klib.h"
 #include "tools/list.h"
 #include "tools/log.h"
+#include "core/memory.h"
 
 void kernel_init(boot_info_t* boot_info) {
     ASSERT(boot_info->ram_region_count != 0);
+    memory_init(boot_info);
     cpu_init();
     log_init();
     irq_init();

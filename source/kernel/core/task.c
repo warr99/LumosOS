@@ -60,7 +60,7 @@ int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp) {
 }
 
 /**
- * @brief: 任务切换
+ * @brief 任务切换
  * @param {uint32_t**} from 源任务的任务控制块中保存栈顶指针的地址,用于将源任务的栈顶指针保存到该地址中
  * @param {uint32_t*} to 目标任务的任务控制块中保存栈顶指针的值,用于跳转到目标任务的栈顶
  * @return {*}

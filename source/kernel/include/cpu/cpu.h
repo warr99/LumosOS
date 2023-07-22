@@ -76,7 +76,7 @@ typedef struct _tss_t {
 #pragma pack(1)
 
 /**
- * @brief: 设置 GDT 表项
+ * @brief 设置 GDT 表项
  * @param {int} selector 表项的偏移量(8,16...)
  * @param {uint32_t} base 对应的内存区域的起始地址
  * @param {uint32_t} limit 对应的内存区域的大小
@@ -86,7 +86,7 @@ typedef struct _tss_t {
 void segment_desc_set(int selector, uint32_t base, uint32_t limit, uint16_t attr);
 
 /**
- * @brief: 设置 中断向量表 表项
+ * @brief 设置 中断向量表 表项
  * @param {gate_desc_set} *desc 要设置的表项的指针
  * @param {uint16_t} selector 对应的 GDT 表的选择子
  * @param {uint32_t} offset 偏移量

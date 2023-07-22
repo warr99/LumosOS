@@ -5,7 +5,7 @@
  * @LastEditTime: 2023-07-21 13:09:08
  * @Description:
  */
-#ifndef TSAK_H
+#ifndef TASK_H
 #define TASK_H
 
 #include "comm/types.h"
@@ -46,25 +46,25 @@ typedef struct _task_manager_t {
 } task_manager_t;
 
 /**
- * @brief: 任务管理器初始化
+ * @brief 任务管理器初始化
  * @return {*}
  */
 void task_manager_init(void);
 
 /**
- * @brief: 初始化 task_manager_t->first_task
+ * @brief 初始化 task_manager_t->first_task
  * @return {*}
  */
 void task_first_init(void);
 
 /**
- * @brief: 取出 task_manager_t->first_task
+ * @brief 取出 task_manager_t->first_task
  * @return {task_t*} first_task
  */
 task_t* get_first_task(void);
 
 /**
- * @brief:
+ * @brief
  * @param {task_t*} 对应的任务控制块结构
  * @param {char*} 任务名称
  * @param {uint32_t} entry 任务入口
@@ -76,21 +76,21 @@ int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp);
 void task_switch(task_t* from, task_t* to);
 
 /**
- * @brief: 将任务插入就绪队列并修改其状态
+ * @brief 将任务插入就绪队列并修改其状态
  * @param {task_t*} task
  * @return {*}
  */
 void task_set_ready(task_t* task);
 
 /**
- * @brief: 将任务从就绪队列中移除
+ * @brief 将任务从就绪队列中移除
  * @param {task_t*} task
  * @return {*}
  */
 void task_set_block(task_t* task);
 
 /**
- * @brief: 使得当前任务主动让出CPU
+ * @brief 使得当前任务主动让出CPU
  * @return {*} 0
  */
 int sys_sched_yield(void);

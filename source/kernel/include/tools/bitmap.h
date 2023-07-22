@@ -16,14 +16,14 @@ typedef struct _bitmap_t {
 } bitmap_t;
 
 /**
- * @brief: 将位图数转化为字节数
+ * @brief 将位图数转化为字节数
  * @param {int} bit_count 位图数
  * @return {int} 字节数
  */
 int bitmap_byte_count(int bit_count);
 
 /**
- * @brief: 初始化位图
+ * @brief 初始化位图
  * @param {bitmap_t*} bitmap bitmap
  * @param {uint8_t*} bits bits
  * @param {int} count count
@@ -33,7 +33,7 @@ int bitmap_byte_count(int bit_count);
 void bitmap_init(bitmap_t* bitmap, uint8_t* bits, int count, int init_bit);
 
 /**
- * @brief: 获取某些位的值
+ * @brief 获取某些位的值
  * @param {bitmap_t*} bitmap 位图
  * @param {int} index 索引
  * @return {int} 值
@@ -41,7 +41,7 @@ void bitmap_init(bitmap_t* bitmap, uint8_t* bits, int count, int init_bit);
 int bitmap_get_bit(bitmap_t* bitmap, int index);
 
 /**
- * @brief: 设置某些位的值
+ * @brief 设置某些位的值
  * @param {bitmap_t*} bitmap 位图
  * @param {int} index 索引
  * @param {int} count 设置的数量
@@ -51,7 +51,7 @@ int bitmap_get_bit(bitmap_t* bitmap, int index);
 void bitmap_set_bit(bitmap_t* bitmap, int index, int count, int bit);
 
 /**
- * @brief: 判断 index 对应的位是 0 还是 1
+ * @brief 判断 index 对应的位是 0 还是 1
  * @param {bitmap_t*} bitmap 位图
  * @param {int} index 索引
  * @return {int} 0 or 1
@@ -59,7 +59,7 @@ void bitmap_set_bit(bitmap_t* bitmap, int index, int count, int bit);
 int bit_map_is_set(bitmap_t* bitmap, int index);
 
 /**
- * @brief: 分配内存中连续为 1 (或者0) 的位
+ * @brief 分配内存中连续为 1 (或者0) 的位
  * @param {bitmap_t*} bitmap 位图
  * @param {int} bit 要找 0 还是 1
  * @param {int} count 数量

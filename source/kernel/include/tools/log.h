@@ -8,7 +8,7 @@
 void log_init(void);
 
 /**
- * @brief: 输出日志
+ * @brief 输出日志
  * @param {char*} fmt 格式化字符串
  * @return {*}
  */

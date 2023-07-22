@@ -21,13 +21,13 @@
 #define PIT_MODE3 (3 << 1)
 
 /**
- * @brief: 初始化定时器
+ * @brief 初始化定时器
  * @return {*}
  */
 void time_init(void);
 
 /**
- * @brief: 中断处理函数
+ * @brief 中断处理函数
  * @return {*}
  */
 void exception_handler_timer(void);

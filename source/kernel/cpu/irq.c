@@ -92,7 +92,7 @@ int irq_install(int irq_num, irq_handler_t handler) {
 }
 
 /**
- * @brief:
+ * @brief
  * @param {exception_frame_t*} frame
  * @param {char*} message 错误信息
  * @return {*}
