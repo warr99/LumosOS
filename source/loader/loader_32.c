@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-11 13:44:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-14 09:59:36
+ * @LastEditTime: 2023-07-23 23:37:16
  * @Description:
  */
 
@@ -75,12 +75,39 @@ static void die(int code) {
     }
 }
 
+#define CR4_PSE (1 << 4)
+#define CR0_PG (1 << 31)
+
+#define PDE_P (1 << 0)
+#define PDE_W (1 << 1)
+#define PDE_PS (1 << 7)
+
+void enable_page_mode(void) {
+    // 页目录表
+    static uint32_t page_dir[1024] __attribute__((aligned(4096))) = {
+        // 初始化第0项,把逻辑地址的0~4M映射到物理地址的0~4M,因为loader已经被放置在1M以内的物理地址,不能改变
+        [0] = PDE_P | PDE_PS | PDE_W,
+    };
+
+    // 设置 cr4 寄存器
+    uint32_t cr4 = read_cr4();
+    write_cr4(cr4 | CR4_PSE);
+
+    // 设置 cr3 寄存器,写入页目录表地址
+    write_cr3((uint32_t)page_dir);
+
+    // 设置 cr0 寄存器,打开分页机制
+    write_cr0(read_cr0() | CR0_PG);
+}
+
 void load_kernel(void) {
     read_disk(100, 500, (uint8_t*)SYS_KERNEL_LOAD_ADDR);
     uint32_t kernel_entry = reload_elf_file((uint8_t*)SYS_KERNEL_LOAD_ADDR);
     if (kernel_entry == 0) {
         die(-1);
     }
+    // 打开分页机制
+    enable_page_mode();
     ((void (*)(boot_info_t*))kernel_entry)(&boot_info);
     for (;;) {
     }
