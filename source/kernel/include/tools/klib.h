@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-17 13:17:47
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-17 22:25:49
+ * @LastEditTime: 2023-07-22 20:26:19
  * @Description: 内核依赖的工具类(字符串 内存操作)
  */
 #ifndef KLIB_h
@@ -76,6 +76,26 @@ void kernel_itoa(char* buf, int num, int base);
 void kernel_vsprintf(char* buf, const char* fmt, va_list args);
 
 void kernel_sprintf(char* buf, const char* fmt, ...);
+
+/**
+ * @brief 将 size 转化为 bound 的整数倍
+ * @param {uint32_t} size size
+ * @param {uint32_t} bound bound(2^n)
+ * @return {uint32_t} size 最接近且小于等于 bound 的整数倍的结果
+ */
+static inline uint32_t down2(uint32_t size, uint32_t bound) {
+    return size & ~(bound - 1);
+}
+
+/**
+ * @brief 将 size 转化为 bound 的整数倍
+ * @param {uint32_t} size size
+ * @param {uint32_t} bound bound(2^n)
+ * @return {uint32_t} 最接近且大于等于 bound 的整数倍的结果
+ */
+static inline uint32_t up2(uint32_t size, uint32_t bound) {
+    return (size + bound - 1) & ~(bound - 1);
+}
 
 #ifndef RELEASE
 

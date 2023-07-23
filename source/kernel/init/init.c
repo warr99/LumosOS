@@ -2,13 +2,14 @@
  * @Author: warrior
  * @Date: 2023-07-12 19:56:55
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-22 10:20:54
+ * @LastEditTime: 2023-07-22 13:58:51
  * @Description:
  */
 
 #include "init.h"
 #include "comm./boot_info.h"
 #include "comm/cpu_instr.h"
+#include "core/memory.h"
 #include "core/task.h"
 #include "cpu/cpu.h"
 #include "cpu/irq.h"
@@ -18,7 +19,6 @@
 #include "tools/klib.h"
 #include "tools/list.h"
 #include "tools/log.h"
-#include "core/memory.h"
 
 void kernel_init(boot_info_t* boot_info) {
     ASSERT(boot_info->ram_region_count != 0);
@@ -38,8 +38,7 @@ static sem_t sem;
 void init_task_entry(void) {
     int count = 0;
     for (;;) {
-        // sem_wait(&sem);
-        log_printf(">>>> init_task_entry()_%d <<<<", count++);
+        // log_printf(">>>> init_task_entry()_%d <<<<", count++);
     }
 }
 
@@ -53,12 +52,6 @@ void init_main(void) {
 
     int count = 0;
     for (;;) {
-        log_printf(">>>> init_main()_%d <<<<", count++);
-        // if (count % 5 == 0) {
-        //     sem_notify(&sem);
-        // }
-        // sys_sleep(1000);
+        // log_printf(">>>> init_main()_%d <<<<", count++);
     }
-
-    // init_task_entry();
 }
