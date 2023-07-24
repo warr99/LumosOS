@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-22 09:30:44
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-22 16:14:12
+ * @LastEditTime: 2023-07-24 10:32:24
  * @Description:
  */
 #ifndef MEMORY_H
@@ -14,7 +14,7 @@
 #include "tools/bitmap.h"
 
 #define MEM_EXT_START (1024 * 1024)
-#define MEN_PAGE_SIZE 4096
+#define MEM_PAGE_SIZE 4096
 #define MEM_EBDA_START 0x00080000
 
 /**
@@ -27,6 +27,13 @@ typedef struct _addr_alloc_t {
     uint32_t size;       // 被管理的内存大小
     uint32_t page_size;  // 页大小
 } addr_alloc_t;
+
+typedef struct _memory_map_t {
+    void* vstart;   // 逻辑起始地址
+    void* vend;     // 逻辑结束地址
+    void* pstart;   // 物理起始地址
+    uint32_t perm;  // 特权属性
+} memory_map_t;
 
 /**
  * @brief 虚拟地址-物理地址映射关系表初始化
