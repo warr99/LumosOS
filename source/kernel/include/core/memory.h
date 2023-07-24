@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-22 09:30:44
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-24 10:32:24
+ * @LastEditTime: 2023-07-24 21:31:18
  * @Description:
  */
 #ifndef MEMORY_H
@@ -16,6 +16,8 @@
 #define MEM_EXT_START (1024 * 1024)
 #define MEM_PAGE_SIZE 4096
 #define MEM_EBDA_START 0x00080000
+#define MEM_TASK_BASE 0x80000000
+#define MEM_EXT_END (127 * 1024 * 1024)
 
 /**
  * @brief 虚拟地址-物理地址映射关系表
@@ -48,5 +50,11 @@ void memory_init(boot_info_t* boot_info);
  * @return {*}
  */
 void show_memory_info(boot_info_t* boot_info);
+
+/**
+ * @brief
+ * @return {*}
+ */
+uint32_t memory_create_uvm(void);
 
 #endif

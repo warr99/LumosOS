@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-21 10:53:23
+ * @LastEditTime: 2023-07-24 20:52:08
  * @Description:
  */
 #include "core/task.h"
@@ -12,6 +12,7 @@
 #include "os_cfg.h"
 #include "tools/klib.h"
 #include "tools/log.h"
+#include "core/memory.h"
 
 static uint32_t idle_task_stack[1024];
 static task_manager_t task_manager;
@@ -37,6 +38,12 @@ static int tss_init(task_t* task, uint32_t entry, uint32_t esp) {
     task->tss.es = task->tss.ds = task->tss.fs = task->tss.gs = KERNEL_SELECTOR_DS;
     task->tss.cs = KERNEL_SELECTOR_CS;
     task->tss.eflags = EFLAGS_IF | EFLAGS_DEFAULT;
+    uint32_t page_dir = memory_create_uvm();
+    if (page_dir == 0) {
+        gdt_free_sel(tss_sel);
+        return -1;
+    }
+    task->tss.cr3 = page_dir;
     task->tss_sel = tss_sel;
     return 0;
 }

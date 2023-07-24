@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-13 14:49:44
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-18 15:02:43
+ * @LastEditTime: 2023-07-24 20:53:43
  * @Description:
  */
 #ifndef CPU_H
@@ -98,6 +98,8 @@ void gate_desc_set(gate_desc_t* desc, uint16_t selector, uint32_t offset, uint16
 void cpu_init(void);
 
 int gdt_alloc_desc();
+
+int gdt_free_sel(int sel);
 
 void switch_to_tss(int tss_sel);
 #endif

@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-13 14:57:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-21 14:26:49
+ * @LastEditTime: 2023-07-24 20:54:22
  * @Description:
  */
 #include "cpu/cpu.h"
@@ -49,6 +49,12 @@ int gdt_alloc_desc() {
     }
     mutex_unlock(&mutex);
     return -1;
+}
+
+int gdt_free_sel(int sel) {
+    mutex_lock(&mutex);
+    gdt_table[sel / sizeof(segment_desc_t)].attr = 0;
+    mutex_unlock(&mutex);
 }
 
 void gdt_init(void) {
