@@ -43,6 +43,9 @@ typedef struct _task_manager_t {
 
     task_t first_task;
     task_t idle_task;  // 空闲进程
+
+    int app_code_sel;  // 代码段选择子
+    int app_data_sel;  // 数据段选择子
 } task_manager_t;
 
 /**

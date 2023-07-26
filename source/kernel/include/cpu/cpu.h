@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-13 14:49:44
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-24 20:53:43
+ * @LastEditTime: 2023-07-26 23:55:50
  * @Description:
  */
 #ifndef CPU_H
@@ -50,6 +50,9 @@ typedef struct _tss_t {
 
 #define SEG_DPL0 (0 << 5)  // 特权级0，最高特权级
 #define SEG_DPL3 (3 << 5)  // 特权级3，最低权限
+
+#define SEG_CPL0 (0 << 0) 
+#define SEG_CPL3 (3 << 0) 
 
 #define SEG_S_SYSTEM (0 << 4)  // 是否是系统段，如调用门或者中断
 #define SEG_S_NORMAL (1 << 4)  // 普通的代码段或数据段
