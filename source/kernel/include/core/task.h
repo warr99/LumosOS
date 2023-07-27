@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:29:35
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-25 11:50:39
+ * @LastEditTime: 2023-07-27 15:45:23
  * @Description:
  */
 #ifndef TASK_H
@@ -14,6 +14,8 @@
 
 #define TASK_NAME_SIZE 32
 #define TASK_TIME_SLICE_DEFAULT 10
+
+#define TASK_FLAGS_SYSTEM (1 << 0)
 
 typedef struct _task_t {
     enum {
@@ -74,7 +76,7 @@ task_t* get_first_task(void);
  * @param {uint32_t} esp 任务对应的栈顶指针
  * @return {*}
  */
-int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp);
+int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp, int flag);
 
 void task_switch(task_t* from, task_t* to);
 
