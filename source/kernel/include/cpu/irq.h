@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-15 09:49:17
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-20 21:31:28
+ * @LastEditTime: 2023-07-27 15:16:11
  * @Description: 中断处理相关
  */
 #ifndef IRQ_H
@@ -53,6 +53,13 @@
 
 #define IRQ_PIC_START 0x20
 
+#define ERR_PAGE_P (1 << 0)
+#define ERR_PAGE_WR (1 << 1)
+#define ERR_PAGE_US (1 << 1)
+
+#define ERR_EXT (1 << 0)
+#define ERR_IDT (1 << 1)
+
 #include "comm/types.h"
 
 typedef struct _exception_frame_t {
@@ -60,6 +67,7 @@ typedef struct _exception_frame_t {
     uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
     uint32_t num, error_code;
     uint32_t eip, cs, eflags;
+    uint32_t esp3, ss3;
 } exception_frame_t;
 
 /**
@@ -128,7 +136,6 @@ void irq_disable_global(void);
 void irq_enable_global(void);
 
 void pic_send_eoi(int irq_num);
-
 
 typedef uint32_t irq_state_t;
 

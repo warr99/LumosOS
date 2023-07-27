@@ -1,3 +1,10 @@
+/*
+ * @Author: warrior
+ * @Date: 2023-07-21 21:40:45
+ * @LastEditors: warrior
+ * @LastEditTime: 2023-07-27 10:02:46
+ * @Description: 
+ */
 #include "tools/bitmap.h"
 #include "tools/klib.h"
 
@@ -13,7 +20,6 @@ void bitmap_init(bitmap_t* bitmap, uint8_t* bits, int count, int init_bit) {
 }
 
 int bitmap_get_bit(bitmap_t* bitmap, int index) {
-    // TODO: return bitmap->bits[index / 8] & (1 << (8 - (index % 8)));
     return (bitmap->bits[index / 8] & (1 << (index % 8))) ? 1 : 0;
 }
 

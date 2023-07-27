@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-26 23:57:55
+ * @LastEditTime: 2023-07-27 14:16:39
  * @Description:
  */
 #include "core/task.h"
@@ -40,7 +40,8 @@ static int tss_init(task_t* task, uint32_t entry, uint32_t esp) {
 
     task->tss.eip = entry;
     task->tss.esp = task->tss.esp0 = esp;
-    task->tss.ss = task->tss.ss0 = data_sel;
+    task->tss.ss = data_sel;
+    task->tss.ss0 = KERNEL_SELECTOR_DS;
     task->tss.es = task->tss.ds = task->tss.fs = task->tss.gs = data_sel;
     task->tss.cs = code_sel;
     task->tss.eflags = EFLAGS_IF | EFLAGS_DEFAULT;
@@ -81,6 +82,7 @@ int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp) {
 void simple_switch(uint32_t** from, uint32_t* to);
 
 void task_manager_init(void) {
+    // 为应用程序分配数据段选择子和代码段选择子(与内核区分开,特权级为3)
     int sel = gdt_alloc_desc();
     segment_desc_set(sel, 0x00000000, 0xFFFFFFFF,
                      SEG_P_PRESENT | SEG_DPL3 | SEG_S_NORMAL | SEG_TYPE_DATA | SEG_TYPE_RW | SEG_D);

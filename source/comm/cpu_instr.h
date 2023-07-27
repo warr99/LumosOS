@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-11 21:07:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-23 22:24:32
+ * @LastEditTime: 2023-07-27 14:56:37
  * @Description: 汇编指令封装
  */
 #ifndef CPU_INSTR_H
@@ -68,7 +68,7 @@ static inline void lidt(uint32_t start, uint32_t size) {
     __asm__ __volatile__("lidt %[g]" ::[g] "m"(idt));
 }
 
-static inline uint16_t read_cr0(void) {
+static inline uint32_t read_cr0(void) {
     uint32_t cr0;
     __asm__ __volatile__("mov %%cr0, %[v]"
                          : [v] "=r"(cr0));
@@ -110,7 +110,19 @@ static inline void write_eflags(uint32_t eflags) {
                          : "a"(eflags));
 }
 
-static inline uint16_t read_cr3(void) {
+static inline uint32_t read_cr2(void) {
+    uint32_t cr2;
+    __asm__ __volatile__("mov %%cr2, %[v]"
+                         : [v] "=r"(cr2));
+}
+
+static inline void write_cr2(uint32_t v) {
+    __asm__ __volatile__("mov %[v], %%cr2"
+                         :
+                         : [v] "r"(v));
+}
+
+static inline uint32_t read_cr3(void) {
     uint32_t cr3;
     __asm__ __volatile__("mov %%cr3, %[v]"
                          : [v] "=r"(cr3));
@@ -122,7 +134,7 @@ static inline void write_cr3(uint32_t v) {
                          : [v] "r"(v));
 }
 
-static inline uint16_t read_cr4(void) {
+static inline uint32_t read_cr4(void) {
     uint32_t cr4;
     __asm__ __volatile__("mov %%cr4, %[v]"
                          : [v] "=r"(cr4));
