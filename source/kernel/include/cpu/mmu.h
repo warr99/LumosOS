@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-24 11:29:15
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-24 15:26:32
+ * @LastEditTime: 2023-07-27 16:47:54
  * @Description: 虚拟内存管理单元 -> 分页机制
  */
 #ifndef MMU_H
@@ -16,7 +16,9 @@
 #define PDE_P (1 << 0)
 #define PTE_W (1 << 1)
 #define PDE_W (1 << 1)
+#define PTE_U (1 << 2)
 #define PDE_U (1 << 2)
+
 
 /**
  * @brief 两级页表机制中的一级页表(页目录表)

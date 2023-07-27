@@ -125,7 +125,7 @@ void task_first_init(void) {
     // 更新CR3寄存器的内容，以切换到新的任务的页表，从而实现不同任务间的地址隔离和内存保护
     mmu_set_page_dir(task_manager.first_task.tss.cr3);
 
-    memory_alloc_page_for(first_start, alloc_size, PTE_P | PTE_W);
+    memory_alloc_page_for(first_start, alloc_size, PTE_P | PTE_W | PTE_U);
     kernel_memcpy((void*)first_start, s_first_task, copy_size);
 }
 

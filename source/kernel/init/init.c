@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-12 19:56:55
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-25 10:41:26
+ * @LastEditTime: 2023-07-27 16:30:00
  * @Description:
  */
 
@@ -30,14 +30,27 @@ void kernel_init(boot_info_t* boot_info) {
     task_manager_init();
 }
 
+/**
+ * @brief 移至第一个进程运行
+ * @return {*}
+ */
 void move_to_first_task(void) {
     task_t* curr = task_current();
     ASSERT(curr != 0);
     tss_t* tss = &(curr->tss);
     __asm__ __volatile__(
-        "jmp *%[ip]"
+        "push %[ss]\n\t"      // SS
+        "push %[esp]\n\t"     // ESP
+        "push %[eflags]\n\t"  // EFLAGS
+        "push %[cs]\n\t"      // CS
+        "push %[eip]\n\t"     // ip
+        "iret\n\t"
         :
-        : [ip] "r"(tss->eip));
+        : [ss] "r"(tss->ss),
+          [esp] "r"(tss->esp),
+          [eflags] "r"(tss->eflags),
+          [cs] "r"(tss->cs),
+          [eip] "r"(tss->eip));
 }
 
 void init_main(void) {
