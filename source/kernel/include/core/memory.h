@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-22 09:30:44
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-27 16:42:29
+ * @LastEditTime: 2023-07-27 17:19:04
  * @Description:
  */
 #ifndef MEMORY_H
@@ -58,5 +58,17 @@ void show_memory_info(boot_info_t* boot_info);
 uint32_t memory_create_uvm(void);
 
 int memory_alloc_page_for(uint32_t addr, uint32_t size, int perm);
+
+/**
+ * @brief 分配一页内存
+ * @return {*} 起始地址
+ */
+uint32_t memory_alloc_one_page(void);
+
+/**
+ * @brief 释放一页内存
+ * @return {*}
+ */
+void memory_free_one_page(uint32_t addr);
 
 #endif

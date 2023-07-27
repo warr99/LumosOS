@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:29:35
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-27 15:45:23
+ * @LastEditTime: 2023-07-27 17:04:20
  * @Description:
  */
 #ifndef TASK_H
@@ -74,6 +74,7 @@ task_t* get_first_task(void);
  * @param {char*} 任务名称
  * @param {uint32_t} entry 任务入口
  * @param {uint32_t} esp 任务对应的栈顶指针
+ * @param {int} flag 标志特权级为 0 or 3
  * @return {*}
  */
 int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp, int flag);

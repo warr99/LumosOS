@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-27 15:50:34
+ * @LastEditTime: 2023-07-27 17:12:37
  * @Description:
  */
 #include "core/task.h"
@@ -34,6 +34,11 @@ static int tss_init(task_t* task, uint32_t entry, uint32_t esp, int flag) {
                      SEG_P_PRESENT | SEG_DPL0 | SEG_TYPE_TSS);
     kernel_memset(&task->tss, 0, sizeof(tss_t));
 
+    uint32_t kernel_stack = memory_alloc_one_page();
+    if (kernel_stack == 0) {
+        goto tss_init_failed;
+    }
+
     int code_sel, data_sel;
     if (flag & TASK_FLAGS_SYSTEM) {
         code_sel = KERNEL_SELECTOR_CS;
@@ -43,7 +48,8 @@ static int tss_init(task_t* task, uint32_t entry, uint32_t esp, int flag) {
         data_sel = task_manager.app_data_sel | SEG_CPL3;
     }
     task->tss.eip = entry;
-    task->tss.esp = task->tss.esp0 = esp;
+    task->tss.esp = esp;
+    task->tss.esp0 = kernel_stack + MEM_PAGE_SIZE;
     task->tss.ss = data_sel;
     task->tss.ss0 = KERNEL_SELECTOR_DS;
     task->tss.es = task->tss.ds = task->tss.fs = task->tss.gs = data_sel;
@@ -51,12 +57,17 @@ static int tss_init(task_t* task, uint32_t entry, uint32_t esp, int flag) {
     task->tss.eflags = EFLAGS_IF | EFLAGS_DEFAULT;
     uint32_t page_dir = memory_create_uvm();
     if (page_dir == 0) {
-        gdt_free_sel(tss_sel);
-        return -1;
+        goto tss_init_failed;
     }
     task->tss.cr3 = page_dir;
     task->tss_sel = tss_sel;
     return 0;
+tss_init_failed:
+    gdt_free_sel(tss_sel);
+    if (kernel_stack) {
+        memory_free_one_page(kernel_stack);
+    }
+    return -1;
 }
 
 int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp, int flag) {
@@ -119,7 +130,7 @@ void task_first_init(void) {
 
     uint32_t first_start = (uint32_t)first_task_enrty;
 
-    task_init(&task_manager.first_task, "first task", first_start, 0, 0);
+    task_init(&task_manager.first_task, "first task", first_start, first_start + alloc_size, 0);
     write_tr(task_manager.first_task.tss_sel);
     task_manager.curr_task = &task_manager.first_task;
     // 更新CR3寄存器的内容，以切换到新的任务的页表，从而实现不同任务间的地址隔离和内存保护
