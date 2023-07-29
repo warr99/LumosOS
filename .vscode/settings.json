@@ -25,7 +25,8 @@
         "list.h": "c",
         "mutex.h": "c",
         "bitmap.h": "c",
-        "memory.h": "c"
+        "memory.h": "c",
+        "mmu.h": "c"
     },
     "fileheader.configObj": {
         "createFileTime": true,

@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-11 11:27:21
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-12 15:37:27
+ * @LastEditTime: 2023-07-28 13:56:35
  * @Description: 工作在16位实模式下的c代码
  */
 __asm__(".code16gcc");
@@ -76,6 +76,7 @@ static void enter_protect_mode(void) {
     // 加载GDT。由于中断已经关掉，IDT不需要加载
     lgdt((uint32_t)gdt_table, sizeof(gdt_table));
 
+    // 启用分页机制
     uint32_t cr0 = read_cr0();
     write_cr0(cr0 | (1 << 0));
 

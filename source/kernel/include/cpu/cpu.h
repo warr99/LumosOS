@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-13 14:49:44
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-26 23:55:50
+ * @LastEditTime: 2023-07-29 22:07:22
  * @Description:
  */
 #ifndef CPU_H
@@ -12,11 +12,14 @@
 
 #pragma pack(1)
 
-// GDT 表项
+// 段描述符(Segment Descripter)
 typedef struct _segment_desc_t {
+    // 段限长字段
     uint16_t limit15_0;
+    // base15_0 base23_16 base31_24: 段基地址,处理器会把3个分立的基地址字段组合形成一个32位的值
     uint16_t base15_0;
     uint8_t base23_16;
+    // 属性
     uint16_t attr;
     uint8_t base31_24;
 } segment_desc_t;
@@ -48,11 +51,11 @@ typedef struct _tss_t {
 #define SEG_D (1 << 14)         // 控制是否是32位、16位的代码或数据段
 #define SEG_P_PRESENT (1 << 7)  // 段是否存在
 
-#define SEG_DPL0 (0 << 5)  // 特权级0，最高特权级
-#define SEG_DPL3 (3 << 5)  // 特权级3，最低权限
+#define SEG_DPL0 (0 << 5)  // 描述符特权级 -> 特权级0，最高特权级
+#define SEG_DPL3 (3 << 5)  // 描述符特权级 -> 特权级3，最低权限
 
-#define SEG_CPL0 (0 << 0) 
-#define SEG_CPL3 (3 << 0) 
+#define SEG_CPL0 (0 << 0)  // 当前特权级CPL -> 0
+#define SEG_CPL3 (3 << 0)  // 当前特权级CPL -> 3
 
 #define SEG_S_SYSTEM (0 << 4)  // 是否是系统段，如调用门或者中断
 #define SEG_S_NORMAL (1 << 4)  // 普通的代码段或数据段
@@ -89,7 +92,7 @@ typedef struct _tss_t {
 void segment_desc_set(int selector, uint32_t base, uint32_t limit, uint16_t attr);
 
 /**
- * @brief 设置 中断向量表 表项
+ * @brief 添加门描述符
  * @param {gate_desc_set} *desc 要设置的表项的指针
  * @param {uint16_t} selector 对应的 GDT 表的选择子
  * @param {uint32_t} offset 偏移量

@@ -117,3 +117,7 @@ exception_handler timer, 0x20, 0
     pop %ebp
 
     ret
+
+    .global exception_handler_syscall
+exception_handler_syscall:
+    ret

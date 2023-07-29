@@ -2,15 +2,17 @@
  * @Author: warrior
  * @Date: 2023-07-13 14:57:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-24 20:54:22
+ * @LastEditTime: 2023-07-29 22:22:07
  * @Description:
  */
 #include "cpu/cpu.h"
 #include "comm/cpu_instr.h"
+#include "core/syscall.h"
 #include "cpu/irq.h"
-#include "ipc\mutex.h"
+#include "ipc/mutex.h"
 #include "os_cfg.h"
 
+// 段描述符表(Descriptor Table - 全局描述符表 GDT)
 static segment_desc_t gdt_table[GDT_TABLE_SIZE];
 static mutex_t mutex;
 
@@ -69,6 +71,13 @@ void gdt_init(void) {
     // 数据段
     segment_desc_set(KERNEL_SELECTOR_DS, 0x00000000, 0xFFFFFFFF,
                      SEG_P_PRESENT | SEG_DPL0 | SEG_S_NORMAL | SEG_TYPE_DATA | SEG_TYPE_RW | SEG_D | SEG_G);
+
+    gate_desc_set(
+        (gate_desc_t*)(gdt_table + (SELECTOR_SYSCALL >> 3)),
+        KERNEL_SELECTOR_CS,
+        (uint32_t)exception_handler_syscall,
+        GATE_P_PRESENT | GATE_DPL3 | GATE_TYPE_SYSCALL | SYSCALL_PARAM_COUNT);
+
     lgdt((uint32_t)gdt_table, sizeof(gdt_table));
 }
 

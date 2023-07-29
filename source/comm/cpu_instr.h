@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-11 21:07:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-27 14:56:37
+ * @LastEditTime: 2023-07-28 13:47:49
  * @Description: 汇编指令封装
  */
 #ifndef CPU_INSTR_H
@@ -26,7 +26,7 @@ static inline uint16_t inw(uint16_t port) {
     return rv;
 }
 
- static inline void outb(uint16_t port, uint8_t data) {
+static inline void outb(uint16_t port, uint8_t data) {
     __asm__ __volatile__("outb %[v], %[p]"
                          :
                          : [p] "d"(port), [v] "a"(data));
@@ -40,6 +40,12 @@ static inline void sti() {
     __asm__ __volatile__("sti");
 }
 
+/**
+ * @brief 用于加载全局描述符表（GDT），其中包含用于管理内存段的描述符信息。
+ * @param {uint32_t} start GDT表的起始地址，表示一个32位无符号整数，指向GDT表在内存中的起始位置
+ * @param {uint32_t} size GDT表的大小，表示一个32位无符号整数，指示GDT表所占用的字节数
+ * @return {*}
+ */
 static inline void lgdt(uint32_t start, uint32_t size) {
     struct {
         uint16_t limit;
