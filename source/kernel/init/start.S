@@ -120,4 +120,4 @@ exception_handler timer, 0x20, 0
 
     .global exception_handler_syscall
 exception_handler_syscall:
-    ret
+    retf $(5*4)
