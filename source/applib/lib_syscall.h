@@ -9,6 +9,7 @@
 #define LIB_SYSCALL_H
 
 #include "os_cfg.h"
+#include "core/syscall.h"
 
 typedef struct _syscall_args_t {
     int id;
