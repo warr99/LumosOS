@@ -245,3 +245,7 @@ int sys_getpid(void) {
     task_t* task = task_current();
     return task->pid;
 }
+
+void sys_print_msg(char* fmt, int arg) {
+    log_printf(fmt, arg);
+}

@@ -118,4 +118,6 @@ void sys_sleep(uint32_t ms);
 
 int sys_getpid(void);
 
+void sys_print_msg(char* fmt, int arg);
+
 #endif
