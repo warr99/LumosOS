@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-31 21:43:32
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-04 15:09:58
+ * @LastEditTime: 2023-08-04 16:50:41
  * @Description:
  */
 #ifndef LIB_SYSCALL_H
@@ -20,22 +20,15 @@ typedef struct _syscall_args_t {
 } syscall_args_t;
 
 static inline int sys_call(syscall_args_t* args) {
-    uint32_t addr[] = {0, SELECTOR_SYSCALL | 0};
     int ret;
     __asm__ __volatile__(
-        "push %[arg3]\n\t"
-        "push %[arg2]\n\t"
-        "push %[arg1]\n\t"
-        "push %[arg0]\n\t"
-        "push %[id]\n\t"
-        "lcalll *(%[a])"
+        "int $0x80"
         : "=a"(ret)
-        : [arg3] "r"(args->arg3),
-          [arg2] "r"(args->arg2),
-          [arg1] "r"(args->arg1),
-          [arg0] "r"(args->arg0),
-          [id] "r"(args->id),
-          [a] "r"(addr));
+        : "S"(args->arg3),
+          "d"(args->arg2),
+          "c"(args->arg1),
+          "b"(args->arg0),
+          "a"(args->id));
     return ret;
 }
 

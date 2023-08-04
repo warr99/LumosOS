@@ -89,6 +89,7 @@ exception_handler smd_exception, 19, 0
 exception_handler virtual_exception, 20, 0
 
 exception_handler timer, 0x20, 0
+exception_handler syscall, 0x80, 0
 
 
     .text
@@ -117,28 +118,3 @@ exception_handler timer, 0x20, 0
     pop %ebp
 
     ret
-
-    .global exception_handler_syscall
-    .extern do_handler_syscall
-exception_handler_syscall:
-
-    pusha
-    push %ds
-    push %es
-    push %fs
-    push %gs
-    pushf
-
-    mov %esp,%eax
-    push %eax
-    call do_handler_syscall
-    add $4, %esp
-
-    popf
-    pop %gs
-    pop %fs
-    pop %es
-    pop %ds
-    popa
-
-    retf $(5*4)

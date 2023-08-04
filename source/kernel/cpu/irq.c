@@ -2,16 +2,17 @@
  * @Author: warrior
  * @Date: 2023-07-15 09:50:54
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-27 15:32:05
+ * @LastEditTime: 2023-08-04 17:09:27
  * @Description:
  */
 #include "cpu/irq.h"
 #include "comm/cpu_instr.h"
+#include "core/syscall.h"
 #include "cpu/cpu.h"
 #include "os_cfg.h"
 #include "tools/log.h"
 
-#define IDT_TABLE_NR 128
+#define IDT_TABLE_NR 256
 
 void exception_handler_unknown(void);
 
@@ -86,6 +87,9 @@ void irq_init(void) {
     irq_install(IRQ18_MC, (irq_handler_t)exception_handler_machine_check);
     irq_install(IRQ19_XM, (irq_handler_t)exception_handler_smd_exception);
     irq_install(IRQ20_VE, (irq_handler_t)exception_handler_virtual_exception);
+
+    irq_install(0x80, (irq_handler_t)exception_handler_syscall);
+    gate_desc_set(idt_table + 0x80, KERNEL_SELECTOR_CS, (uint32_t)exception_handler_syscall, GATE_P_PRESENT | GATE_DPL3 | GATE_TYPE_IDT);
 
     lidt((uint32_t)idt_table, sizeof(idt_table));
 
