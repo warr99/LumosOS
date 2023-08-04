@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-27 17:12:37
+ * @LastEditTime: 2023-08-04 14:26:24
  * @Description:
  */
 #include "core/task.h"
@@ -82,6 +82,7 @@ int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp, int 
     list_node_init(&task->run_node);
     list_node_init(&task->wait_node);
     irq_state_t state = irq_enter_protection();
+    task->pid = (uint32_t)task;
     task_set_ready(task);
     list_insert_last(&task_manager.task_list, &task->all_node);
     irq_leave_protection(state);
@@ -238,4 +239,9 @@ void sys_sleep(uint32_t ms) {
     task_set_sleep(task_manager.curr_task, (ms + (OS_TICKS_MS - 1)) / OS_TICKS_MS);
     task_dispatch();
     irq_leave_protection(state);
+}
+
+int sys_getpid(void) {
+    task_t* task = task_current();
+    return task->pid;
 }

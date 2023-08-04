@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-29 22:14:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-04 10:59:50
+ * @LastEditTime: 2023-08-04 14:36:04
  * @Description: 
  */
 #ifndef SYSCALL_H
@@ -12,6 +12,7 @@
 
 #define SYSCALL_PARAM_COUNT 5
 #define SYS_sleep 0
+#define SYS_getpid 1
 
 /**
  * 系统调用的栈信息
