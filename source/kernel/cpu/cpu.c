@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-13 14:57:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-06 10:10:25
+ * @LastEditTime: 2023-08-06 16:14:00
  * @Description:
  */
 #include "cpu/cpu.h"
@@ -22,7 +22,7 @@ void segment_desc_set(int selector, uint32_t base, uint32_t limit, uint16_t attr
     segment_desc_t* desc = gdt_table + selector / sizeof(segment_desc_t);
 
     if (limit > 0xFFFFFF) {
-        attr | SEG_G;
+        attr |= SEG_G;
         limit /= 0x100;
     }
 
