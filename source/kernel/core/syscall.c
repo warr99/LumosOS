@@ -1,3 +1,10 @@
+/*
+ * @Author: warrior
+ * @Date: 2023-08-04 10:51:33
+ * @LastEditors: warrior
+ * @LastEditTime: 2023-08-05 09:32:51
+ * @Description: 
+ */
 #include "core/syscall.h"
 #include "core/task.h"
 #include "tools/log.h"
@@ -8,6 +15,7 @@ static const syscall_handler_t sys_table[] = {
     [SYS_sleep] = (syscall_handler_t)sys_sleep,
     [SYS_getpid] = (syscall_handler_t)sys_getpid,
     [SYS_printmsg] = (syscall_handler_t)sys_print_msg,
+    [SYS_fork] = (syscall_handler_t)sys_fork,
 };
 
 void do_handler_syscall(syscall_frame_t* frame) {

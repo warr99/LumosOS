@@ -154,10 +154,14 @@ uint32_t memory_create_uvm(void) {
         return 0;
     }
     kernel_memset((void*)page_dir, 0, MEM_PAGE_SIZE);
+
+    // 复制整个内核空间的页目录项，以便与其它进程共享内核空间
+    // 用户空间的内存映射暂不处理，等加载程序时创建
     uint32_t user_pde_start = pde_index(MEM_TASK_BASE);
     for (int i = 0; i < user_pde_start; i++) {
         page_dir[i].v = kernel_page_dir[i].v;
     }
+
     return (uint32_t)page_dir;
 }
 
@@ -224,6 +228,7 @@ uint32_t memory_alloc_one_page(void) {
 static pde_t* curr_page_dir(void) {
     return (pde_t*)(task_current()->tss.cr3);
 }
+
 void memory_free_one_page(uint32_t addr) {
     if (addr < MEM_TASK_BASE) {
         addr_free_page(&paddr_alloc, addr, 1);
@@ -233,4 +238,87 @@ void memory_free_one_page(uint32_t addr) {
         addr_free_page(&paddr_alloc, pte_paddr(pte), 1);
         pte->v = 0;
     }
+}
+
+/**
+ * @brief 销毁用户空间内存
+ */
+void memory_destroy_uvm(uint32_t page_dir) {
+    uint32_t user_pde_start = pde_index(MEM_TASK_BASE);
+    pde_t* pde = (pde_t*)page_dir + user_pde_start;
+
+    // 释放页表中对应的各项，不包含映射的内核页面
+    for (int i = user_pde_start; i < PDE_COUNT; i++, pde++) {
+        if (!pde->present) {
+            continue;
+        }
+
+        // 释放页表对应的物理页 + 页表
+        pte_t* pte = (pte_t*)pde_paddr(pde);
+        for (int j = 0; j < PTE_COUNT; j++, pte++) {
+            if (!pte->present) {
+                continue;
+            }
+
+            addr_free_page(&paddr_alloc, pte_paddr(pte), 1);
+        }
+
+        addr_free_page(&paddr_alloc, (uint32_t)pde_paddr(pde), 1);
+    }
+
+    // 页目录表
+    addr_free_page(&paddr_alloc, page_dir, 1);
+}
+
+/**
+ * @brief 复制页表及其所有的内存空间
+ */
+uint32_t memory_copy_uvm(uint32_t page_dir) {
+    // 复制基础页表
+    uint32_t to_page_dir = memory_create_uvm();
+    if (to_page_dir == 0) {
+        goto copy_uvm_failed;
+    }
+
+    // 再复制用户空间的各项
+    uint32_t user_pde_start = pde_index(MEM_TASK_BASE);
+    pde_t* pde = (pde_t*)page_dir + user_pde_start;
+
+    // 遍历用户空间页目录项
+    for (int i = user_pde_start; i < PDE_COUNT; i++, pde++) {
+        if (!pde->present) {
+            continue;
+        }
+
+        // 遍历页表
+        pte_t* pte = (pte_t*)pde_paddr(pde);
+        for (int j = 0; j < PTE_COUNT; j++, pte++) {
+            if (!pte->present) {
+                continue;
+            }
+
+            // 分配物理内存
+            uint32_t page = addr_alloc_page(&paddr_alloc, 1);
+            if (page == 0) {
+                goto copy_uvm_failed;
+            }
+
+            // 建立映射关系
+            uint32_t vaddr = (i << 22) | (j << 12);
+            int err = memory_create_map((pde_t*)to_page_dir, vaddr, page, 1, get_pte_perm(pte));
+            if (err < 0) {
+                goto copy_uvm_failed;
+            }
+
+            // 复制内容。
+            kernel_memcpy((void*)page, (void*)vaddr, MEM_PAGE_SIZE);
+        }
+    }
+    return to_page_dir;
+
+copy_uvm_failed:
+    if (to_page_dir) {
+        memory_destroy_uvm(to_page_dir);
+    }
+    return -1;
 }

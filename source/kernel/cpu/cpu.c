@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-13 14:57:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-30 11:06:58
+ * @LastEditTime: 2023-08-06 10:10:25
  * @Description:
  */
 #include "cpu/cpu.h"
@@ -40,17 +40,21 @@ void gate_desc_set(gate_desc_t* desc, uint16_t selector, uint32_t offset, uint16
     desc->offset31_16 = (offset >> 16) & 0xFFFF;
 }
 
-int gdt_alloc_desc() {
+int gdt_alloc_desc(void) {
+    int i;
+
+    // 跳过第0项
     mutex_lock(&mutex);
-    for (int i = 1; i < GDT_TABLE_SIZE; i++) {
+    for (i = 1; i < GDT_TABLE_SIZE; i++) {
         segment_desc_t* desc = gdt_table + i;
         if (desc->attr == 0) {
-            mutex_unlock(&mutex);
-            return i * sizeof(segment_desc_t);
+            desc->attr = SEG_P_PRESENT;  // 标记为占用状态
+            break;
         }
     }
     mutex_unlock(&mutex);
-    return -1;
+
+    return i >= GDT_TABLE_SIZE ? -1 : i * sizeof(segment_desc_t);
 }
 
 int gdt_free_sel(int sel) {

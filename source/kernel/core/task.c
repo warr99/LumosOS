@@ -2,12 +2,13 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-04 14:26:24
+ * @LastEditTime: 2023-08-06 09:46:09
  * @Description:
  */
 #include "core/task.h"
 #include "comm/cpu_instr.h"
 #include "core/memory.h"
+#include "core/syscall.h"
 #include "cpu/cpu.h"
 #include "cpu/irq.h"
 #include "cpu/mmu.h"
@@ -17,6 +18,8 @@
 
 static uint32_t idle_task_stack[1024];
 static task_manager_t task_manager;
+static task_t task_table[TASK_NR];
+static mutex_t task_table_mutex;
 
 static void idle_task_entry(void) {
     for (;;) {
@@ -70,6 +73,37 @@ tss_init_failed:
     return -1;
 }
 
+/**
+ * @brief 分配task结构
+ * @return {task_t}
+ */
+static task_t* alloc_task(void) {
+    task_t* task = (task_t*)0;
+
+    mutex_lock(&task_table_mutex);
+    for (int i = 0; i < TASK_NR; i++) {
+        task_t* curr = task_table + i;
+        if (curr->name[0] == 0) {
+            task = curr;
+            break;
+        }
+    }
+    mutex_unlock(&task_table_mutex);
+
+    return task;
+}
+
+/**
+ * @brief
+ * @param {task_t*} task
+ * @return {*}
+ */
+static void free_task(task_t* task) {
+    mutex_lock(&task_table_mutex);
+    task->name[0] = 0;
+    mutex_unlock(&task_table_mutex);
+}
+
 int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp, int flag) {
     ASSERT(task != (task_t*)0);
     tss_init(task, entry, esp, flag);
@@ -77,6 +111,7 @@ int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp, int 
     task->state = TASK_CREATED;
     task->time_ticks = TASK_TIME_SLICE_DEFAULT;
     task->slice_ticks = task->time_ticks;
+    task->parent = (task_t*)0;
     task->sleep_ticks = 0;
     list_node_init(&task->all_node);
     list_node_init(&task->run_node);
@@ -89,6 +124,19 @@ int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp, int 
     return 0;
 }
 
+void task_uninit(task_t* task) {
+    if (task->tss_sel) {
+        gdt_free_sel(task->tss_sel);
+    }
+    if (task->tss.esp0) {
+        memory_free_one_page(task->tss.esp0 - MEM_PAGE_SIZE);
+    }
+    if (task->tss.cr3) {
+        memory_destroy_uvm(task->tss.cr3);
+    }
+    kernel_memset(task, 0, sizeof(task_t));
+}
+
 /**
  * @brief 任务切换
  * @param {uint32_t**} from 源任务的任务控制块中保存栈顶指针的地址,用于将源任务的栈顶指针保存到该地址中
@@ -98,6 +146,8 @@ int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp, int 
 void simple_switch(uint32_t** from, uint32_t* to);
 
 void task_manager_init(void) {
+    kernel_memset(task_table, 0, sizeof(task_table));
+    mutex_init(&task_table_mutex);
     // 为应用程序分配数据段选择子和代码段选择子(与内核区分开,特权级为3)
     int sel = gdt_alloc_desc();
     segment_desc_set(sel, 0x00000000, 0xFFFFFFFF,
@@ -248,4 +298,58 @@ int sys_getpid(void) {
 
 void sys_print_msg(char* fmt, int arg) {
     log_printf(fmt, arg);
+}
+
+/**
+ * @brief 创建进程的副本
+ */
+int sys_fork(void) {
+    task_t* parent_task = task_current();
+
+    // 分配任务结构
+    task_t* child_task = alloc_task();
+    if (child_task == (task_t*)0) {
+        goto fork_failed;
+    }
+
+    syscall_frame_t* frame = (syscall_frame_t*)(parent_task->tss.esp0 - sizeof(syscall_frame_t));
+
+    // 对子进程进行初始化，并对必要的字段进行调整
+    // 其中esp要减去系统调用的总参数字节大小，因为其是通过正常的ret返回, 而没有走系统调用处理的ret(参数个数返回)
+    int err = task_init(child_task, parent_task->name, frame->eip, frame->esp + sizeof(uint32_t) * SYSCALL_PARAM_COUNT, 0);
+    if (err < 0) {
+        goto fork_failed;
+    }
+    tss_t* tss = &child_task->tss;
+    tss->eax = 0;
+    tss->ebx = frame->ebx;
+    tss->ecx = frame->ecx;
+    tss->edx = frame->edx;
+    tss->esi = frame->esi;
+    tss->edi = frame->edi;
+    tss->ebp = frame->ebp;
+
+    tss->cs = frame->cs;
+    tss->ds = frame->ds;
+    tss->es = frame->es;
+    tss->fs = frame->fs;
+    tss->gs = frame->gs;
+    tss->eflags = frame->eflags;
+
+    child_task->parent = parent_task;
+
+    if ((tss->cr3 = memory_copy_uvm(parent_task->tss.cr3)) < 0) {
+        goto fork_failed;
+    }
+    // tss->cr3 = parent_task->tss.cr3;
+
+    return child_task->pid;
+
+fork_failed:
+    if (child_task) {
+        task_uninit(child_task);
+        free_task(child_task);
+    }
+
+    return -1;
 }

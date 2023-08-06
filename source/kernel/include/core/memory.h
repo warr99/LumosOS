@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-22 09:30:44
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-27 17:19:04
+ * @LastEditTime: 2023-08-05 23:53:42
  * @Description:
  */
 #ifndef MEMORY_H
@@ -70,5 +70,9 @@ uint32_t memory_alloc_one_page(void);
  * @return {*}
  */
 void memory_free_one_page(uint32_t addr);
+
+void memory_destroy_uvm(uint32_t page_dir);
+
+uint32_t memory_copy_uvm(uint32_t page_dir);
 
 #endif

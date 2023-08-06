@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-31 21:43:32
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-04 15:09:58
+ * @LastEditTime: 2023-08-05 09:33:38
  * @Description:
  */
 #ifndef LIB_SYSCALL_H
@@ -60,6 +60,12 @@ static inline void print_msg(const char* fmt, int arg) {
     args.id = SYS_printmsg;
     args.arg0 = (int)fmt;
     args.arg1 = arg;
+    sys_call(&args);
+}
+
+static inline int fork(void) {
+    syscall_args_t args;
+    args.id = SYS_fork;
     sys_call(&args);
 }
 

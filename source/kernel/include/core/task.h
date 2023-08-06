@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:29:35
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-27 17:04:20
+ * @LastEditTime: 2023-08-05 09:34:42
  * @Description:
  */
 #ifndef TASK_H
@@ -35,6 +35,7 @@ typedef struct _task_t {
     tss_t tss;
     int tss_sel;
     int pid;
+    struct _task_t* parent;  // 父进程
 } task_t;
 
 typedef struct _task_manager_t {
@@ -119,5 +120,7 @@ void sys_sleep(uint32_t ms);
 int sys_getpid(void);
 
 void sys_print_msg(char* fmt, int arg);
+
+int sys_fork(void);
 
 #endif

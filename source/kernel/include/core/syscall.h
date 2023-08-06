@@ -14,6 +14,7 @@
 #define SYS_sleep 0
 #define SYS_getpid 1
 #define SYS_printmsg 2
+#define SYS_fork 3
 
 /**
  * 系统调用的栈信息
