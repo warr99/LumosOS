@@ -2,16 +2,18 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-06 09:46:09
+ * @LastEditTime: 2023-08-07 23:15:38
  * @Description:
  */
 #include "core/task.h"
 #include "comm/cpu_instr.h"
+#include "comm/elf.h"
 #include "core/memory.h"
 #include "core/syscall.h"
 #include "cpu/cpu.h"
 #include "cpu/irq.h"
 #include "cpu/mmu.h"
+#include "fs/fs.h"
 #include "os_cfg.h"
 #include "tools/klib.h"
 #include "tools/log.h"
@@ -351,5 +353,135 @@ fork_failed:
         free_task(child_task);
     }
 
+    return -1;
+}
+
+/**
+ * @brief 加载一个程序表头的数据到内存中
+ * @param  file 文件描述符
+ * @param  phdr program header
+ * @param  page_dir 页表地址
+ * @return
+ */
+static int load_phdr(int file, Elf32_Phdr* phdr, uint32_t page_dir) {
+    int err = memory_alloc_for_page_dir(page_dir, phdr->p_vaddr, phdr->p_memsz, PTE_P | PTE_U | PTE_W);
+    if (err < 0) {
+        log_printf("no memory");
+        return -1;
+    }
+    // 调整当前的读写指针到 program header 指向的真正存放数据的地方
+    if (sys_lseek(file, phdr->p_offset, 0) < 0) {
+        log_printf("read file failed");
+        return -1;
+    }
+    uint32_t vaddr = phdr->p_vaddr;
+    uint32_t size = phdr->p_filesz;
+    while (size > 0) {
+        int curr_size = (size > MEM_PAGE_SIZE) ? MEM_PAGE_SIZE : size;
+
+        uint32_t paddr = memory_get_paddr(page_dir, vaddr);
+
+        // 注意，这里用的页表仍然是当前的
+        if (sys_read(file, (char*)paddr, curr_size) < curr_size) {
+            log_printf("read file failed");
+            return -1;
+        }
+
+        size -= curr_size;
+        vaddr += curr_size;
+    }
+}
+
+/**
+ * @brief  加载 elf 文件中的内容到页表中
+ * @param  task 进程
+ * @param  name 文件路径
+ * @param  page_dir 加载到哪一个页表
+ * @return 入口地址
+ */
+static uint32_t load_elf_file(task_t* task, const char* name, uint32_t page_dir) {
+    Elf32_Ehdr elf_hdr;
+    Elf32_Phdr elf_phdr;
+
+    int file = sys_open(name, 0);
+    if (file < 0) {
+        log_printf("open elf failed %s", name);
+        goto load_failed;
+    }
+    int cnt = sys_read(file, (char*)&elf_hdr, sizeof(elf_hdr));
+    // 读取文件头
+    if (cnt < sizeof(Elf32_Ehdr)) {
+        log_printf("elf hdr too small. size=%d", cnt);
+        goto load_failed;
+    }
+    // 检查
+    if ((elf_hdr.e_ident[0] != ELF_MAGIC) || (elf_hdr.e_ident[1] != 'E') || (elf_hdr.e_ident[2] != 'L') || (elf_hdr.e_ident[3] != 'F')) {
+        log_printf("check elf indent failed.");
+        goto load_failed;
+    }
+    // 起始地址
+    uint32_t e_phoff = elf_hdr.e_phoff;
+    for (int i = 0; i < elf_hdr.e_phnum; i++, e_phoff += elf_hdr.e_phentsize) {
+        // 移动到 program header
+        if (sys_lseek(file, e_phoff, 0) < 0) {
+            log_printf("read file failed");
+            goto load_failed;
+        }
+        // 读取表项
+        cnt = sys_read(file, (char*)&elf_phdr, sizeof(Elf32_Phdr));
+        if (cnt < sizeof(Elf32_Phdr)) {
+            log_printf("read file failed");
+            goto load_failed;
+        }
+        // 做一些简单的检查
+        if ((elf_phdr.p_type != PT_LOAD) || (elf_phdr.p_vaddr < MEM_TASK_BASE)) {
+            continue;
+        }
+        // 加载当前 program header
+        int err = load_phdr(file, &elf_phdr, page_dir);
+        if (err < 0) {
+            log_printf("load program hdr failed");
+            goto load_failed;
+        }
+    }
+    sys_close(file);
+    return elf_hdr.e_entry;
+load_failed:
+    if (file >= 0) {
+        sys_close(file);
+    }
+    return 0;
+}
+
+int sys_execve(char* name, char** argv, char** env) {
+    // 当前进程
+    task_t* task = task_current();
+    // 原页表
+    uint32_t old_page_dir = task->tss.cr3;
+    // 创建新的页表
+    uint32_t new_page_dir = memory_create_uvm();
+    if (!new_page_dir) {
+        goto exec_failed;
+    }
+    // 加载 elf 文件中的内容到新的页表中
+    uint32_t entry = load_elf_file(task, name, new_page_dir);
+    if (entry == 0) {
+        goto exec_failed;
+    }
+    // 更新页表
+    task->tss.cr3 = new_page_dir;
+    mmu_set_page_dir(new_page_dir);
+    // 释放原来的页表
+    memory_destroy_uvm(old_page_dir);
+    return 0;
+exec_failed:
+    // 创建新的页表失败
+    if (new_page_dir) {
+        // 恢复成原来的页表
+        task->tss.cr3 = old_page_dir;
+        mmu_set_page_dir(old_page_dir);
+        // 释放页表
+        memory_destroy_uvm(new_page_dir);
+    }
     return -1;
 }

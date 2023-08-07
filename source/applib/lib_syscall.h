@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-31 21:43:32
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-05 09:33:38
+ * @LastEditTime: 2023-08-07 15:14:40
  * @Description:
  */
 #ifndef LIB_SYSCALL_H
@@ -67,6 +67,26 @@ static inline int fork(void) {
     syscall_args_t args;
     args.id = SYS_fork;
     sys_call(&args);
+}
+
+/**
+ * @brief 执行指定的程序文件并替换当前进程映像。
+ *
+ * @param name  要执行的程序的文件路径。
+ * @param argv      一个字符串数组，用于传递给新程序的命令行参数。
+ *                  数组中的第一个元素通常是新程序的名称，后续元素是传递给新程序的参数。
+ * @param env      一个字符串数组，用于传递给新程序的环境变量。
+ *                  这是一个包含"key=value"格式的字符串的数组，用于设置新程序的环境。
+ *
+ * @return          如果调用成功，函数不会返回；如果发生错误，将返回-1，并设置errno来指示错误类型。
+ */
+static inline int execve(const char* name, char* const* argv, char* const* env) {
+    syscall_args_t args;
+    args.id = SYS_execve;
+    args.arg0 = (int)name;
+    args.arg1 = (int)argv;
+    args.arg2 = (int)env;
+    return sys_call(&args);
 }
 
 #endif

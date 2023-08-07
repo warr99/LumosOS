@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-22 09:30:44
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-05 23:53:42
+ * @LastEditTime: 2023-08-07 23:21:18
  * @Description:
  */
 #ifndef MEMORY_H
@@ -59,6 +59,8 @@ uint32_t memory_create_uvm(void);
 
 int memory_alloc_page_for(uint32_t addr, uint32_t size, int perm);
 
+int memory_alloc_for_page_dir(uint32_t page_dir, uint32_t vaddr, uint32_t size, int perm);
+
 /**
  * @brief 分配一页内存
  * @return {*} 起始地址
@@ -74,5 +76,13 @@ void memory_free_one_page(uint32_t addr);
 void memory_destroy_uvm(uint32_t page_dir);
 
 uint32_t memory_copy_uvm(uint32_t page_dir);
+
+/**
+ * @brief 获取指定虚拟地址的物理地址
+ * @param  page_dir 页表
+ * @param  vaddr 虚拟地址
+ * @return  物理地址
+ */
+uint32_t memory_get_paddr(uint32_t page_dir, uint32_t vaddr);
 
 #endif

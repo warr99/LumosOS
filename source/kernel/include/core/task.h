@@ -123,4 +123,6 @@ void sys_print_msg(char* fmt, int arg);
 
 int sys_fork(void);
 
+int sys_execve(char* name, char** argv, char** env);
+
 #endif

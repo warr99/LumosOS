@@ -322,3 +322,11 @@ copy_uvm_failed:
     }
     return -1;
 }
+
+uint32_t memory_get_paddr(uint32_t page_dir, uint32_t vaddr) {
+    pte_t* pte = find_pte((pde_t*)page_dir, vaddr, 0);
+    if (pte == (pte_t*)0) {
+        return 0;
+    }
+    return pte_paddr(pte) + (vaddr & (MEM_PAGE_SIZE - 1));
+}

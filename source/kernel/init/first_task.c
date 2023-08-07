@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-25 10:10:58
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-05 23:11:12
+ * @LastEditTime: 2023-08-07 23:22:20
  * @Description:
  */
 #include "applib/lib_syscall.h"
@@ -16,11 +16,19 @@ int first_task_main(void) {
     print_msg("first task id=%d", pid);
 
     pid = fork();
+    
     if (pid < 0) {
         print_msg("create child proc failed.", 0);
     } else if (pid == 0) {
         count += 3;
         print_msg("child: %d", count);
+        char* argv[] = {
+            "arg0",
+            "arg2",
+            "arg3",
+            "arg4",
+        };
+        execve("/shell.elf", argv, (char**)0);
     } else {
         count += 1;
         print_msg("child task id=%d", pid);

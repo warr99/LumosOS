@@ -42,8 +42,8 @@ static inline void sti() {
 
 /**
  * @brief 用于加载全局描述符表（GDT），其中包含用于管理内存段的描述符信息。
- * @param {uint32_t} start GDT表的起始地址，表示一个32位无符号整数，指向GDT表在内存中的起始位置
- * @param {uint32_t} size GDT表的大小，表示一个32位无符号整数，指示GDT表所占用的字节数
+ * @param  start GDT表的起始地址，表示一个32位无符号整数，指向GDT表在内存中的起始位置
+ * @param  size GDT表的大小，表示一个32位无符号整数，指示GDT表所占用的字节数
  * @return {*}
  */
 static inline void lgdt(uint32_t start, uint32_t size) {
