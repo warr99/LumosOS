@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-08 21:59:56
+ * @LastEditTime: 2023-08-10 22:53:25
  * @Description:
  */
 #include "core/task.h"
@@ -399,27 +399,26 @@ static int load_phdr(int file, Elf32_Phdr* phdr, uint32_t page_dir) {
  * @param  page_dir 加载到哪一个页表
  * @return 入口地址
  */
-static uint32_t load_elf_file (task_t * task, const char * name, uint32_t page_dir) {
+static uint32_t load_elf_file(task_t* task, const char* name, uint32_t page_dir) {
     Elf32_Ehdr elf_hdr;
     Elf32_Phdr elf_phdr;
 
     // 以只读方式打开
-    int file = sys_open(name, 0);   
+    int file = sys_open(name, 0);
     if (file < 0) {
         log_printf("open file failed.%s", name);
         goto load_failed;
     }
 
     // 先读取文件头
-    int cnt = sys_read(file, (char *)&elf_hdr, sizeof(elf_hdr));
+    int cnt = sys_read(file, (char*)&elf_hdr, sizeof(elf_hdr));
     if (cnt < sizeof(Elf32_Ehdr)) {
         log_printf("elf hdr too small. size=%d", cnt);
         goto load_failed;
     }
 
     // 做点必要性的检查。当然可以再做其它检查
-    if ((elf_hdr.e_ident[0] != ELF_MAGIC) || (elf_hdr.e_ident[1] != 'E')
-        || (elf_hdr.e_ident[2] != 'L') || (elf_hdr.e_ident[3] != 'F')) {
+    if ((elf_hdr.e_ident[0] != ELF_MAGIC) || (elf_hdr.e_ident[1] != 'E') || (elf_hdr.e_ident[2] != 'L') || (elf_hdr.e_ident[3] != 'F')) {
         log_printf("check elf indent failed.");
         goto load_failed;
     }
@@ -445,7 +444,7 @@ static uint32_t load_elf_file (task_t * task, const char * name, uint32_t page_d
         }
 
         // 读取程序头后解析，这里不用读取到新进程的页表中，因为只是临时使用下
-        cnt = sys_read(file, (char *)&elf_phdr, sizeof(Elf32_Phdr));
+        cnt = sys_read(file, (char*)&elf_phdr, sizeof(Elf32_Phdr));
         if (cnt < sizeof(Elf32_Phdr)) {
             log_printf("read file failed");
             goto load_failed;
@@ -454,7 +453,7 @@ static uint32_t load_elf_file (task_t * task, const char * name, uint32_t page_d
         // 简单做一些检查，如有必要，可自行加更多
         // 主要判断是否是可加载的类型，并且要求加载的地址必须是用户空间
         if ((elf_phdr.p_type != PT_LOAD) || (elf_phdr.p_vaddr < MEM_TASK_BASE)) {
-           continue;
+            continue;
         }
 
         // 加载当前程序头
@@ -463,7 +462,7 @@ static uint32_t load_elf_file (task_t * task, const char * name, uint32_t page_d
             log_printf("load program hdr failed");
             goto load_failed;
         }
-   }
+    }
 
     sys_close(file);
     return elf_hdr.e_entry;
@@ -476,8 +475,36 @@ load_failed:
     return 0;
 }
 
+/**
+ * @brief
+ * @param to
+ * @param page_dir
+ * @param argc
+ * @param argv
+ * @return int
+ */
+static int copy_args(char* to, uint32_t page_dir, int argc, char** argv) {
+    task_args_t task_args;
+    task_args.argc = argc;
+    task_args.argv = (char**)(to + sizeof(task_args_t));
+    char* dest_arg = to + sizeof(task_args_t) + sizeof(char*) * argc;
+    char** dest_argv_tb = (char**)memory_get_paddr(page_dir, (uint32_t)(to + sizeof(task_args_t)));
+    for (int i = 0; i < argc; i++) {
+        char* from = argv[i];
+        int len = kernel_strlen(from) + 1;
+        int err = memory_copy_uvm_data((uint32_t)dest_arg, page_dir, (uint32_t)from, len);
+        ASSERT(err >= 0);
+        dest_argv_tb[i] = dest_arg;
+        dest_arg += len;
+    }
+
+    return memory_copy_uvm_data((uint32_t)to, page_dir, (uint32_t)&task_args, sizeof(task_args));
+}
+
 int sys_execve(char* name, char** argv, char** env) {
     task_t* task = task_current();
+
+    kernel_strncpy(task->name, get_file_name(name), TASK_NAME_SIZE);
 
     // 现在开始加载了，先准备应用页表，由于所有操作均在内核区中进行，所以可以直接先切换到新页表
     uint32_t old_page_dir = task->tss.cr3;
@@ -493,12 +520,20 @@ int sys_execve(char* name, char** argv, char** env) {
     }
 
     // 准备用户栈空间，预留环境环境及参数的空间
-    uint32_t stack_top = MEM_TASK_STACK_TOP;
+    uint32_t stack_top = MEM_TASK_STACK_TOP - MEM_TASK_ARG_SIZE;
     int err = memory_alloc_for_page_dir(
         new_page_dir,
         MEM_TASK_STACK_TOP - MEM_TASK_STACK_SIZE,
         MEM_TASK_STACK_SIZE,
         PTE_P | PTE_U | PTE_W);
+    if (err < 0) {
+        goto exec_failed;
+    }
+
+    int argc = strings_count(argv);
+
+    // 拷贝参数
+    err = copy_args((char*)stack_top, new_page_dir, argc, argv);
     if (err < 0) {
         goto exec_failed;
     }

@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:29:35
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-05 09:34:42
+ * @LastEditTime: 2023-08-10 18:03:08
  * @Description:
  */
 #ifndef TASK_H
@@ -51,6 +51,12 @@ typedef struct _task_manager_t {
     int app_code_sel;  // 代码段选择子
     int app_data_sel;  // 数据段选择子
 } task_manager_t;
+
+typedef struct _task_args_t {
+	uint32_t ret_addr;		// 返回地址
+	uint32_t argc;
+	char **argv;
+}task_args_t;
 
 /**
  * @brief 任务管理器初始化

@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-17 13:17:47
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-22 20:26:19
+ * @LastEditTime: 2023-08-10 17:17:26
  * @Description: 内核依赖的工具类(字符串 内存操作)
  */
 #ifndef KLIB_h
@@ -100,11 +100,25 @@ static inline uint32_t up2(uint32_t size, uint32_t bound) {
 #ifndef RELEASE
 
 #define ASSERT(expr) \
-    if (!(expr))    \
+    if (!(expr))     \
     pannic(__FILE__, __LINE__, __func__, #expr)
 void pannic(const char* file, int line, const char* func, const char* cond);
 #else
 #define ASSERT() ((void)0)
 #endif
+
+/**
+ * @brief 获取字符串数组中字符串的数量
+ * @param start 字符串数组
+ * @return int 字符串的数量
+ */
+int strings_count(char** start);
+
+/**
+ * @brief  获取完整路径中的文件名部分
+ * @param  name 完整路径
+ * @return char* 文件名部分
+ */
+char* get_file_name(const char* name);
 
 #endif

@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-22 09:30:44
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-08 15:36:39
+ * @LastEditTime: 2023-08-10 20:49:58
  * @Description:
  */
 #ifndef MEMORY_H
@@ -20,6 +20,7 @@
 #define MEM_EXT_END (127 * 1024 * 1024)
 #define MEM_TASK_STACK_TOP (0xE0000000)            // 初始栈的位置
 #define MEM_TASK_STACK_SIZE (MEM_PAGE_SIZE * 500)  // 栈空间
+#define MEM_TASK_ARG_SIZE (MEM_PAGE_SIZE * 4)      // 余留的放置参数的大小
 
 /**
  * @brief 虚拟地址-物理地址映射关系表
@@ -86,5 +87,15 @@ uint32_t memory_copy_uvm(uint32_t page_dir);
  * @return  物理地址
  */
 uint32_t memory_get_paddr(uint32_t page_dir, uint32_t vaddr);
+
+/**
+ * @brief
+ * @param to 拷贝到新页表的 to 地址处
+ * @param page_dir 新页表
+ * @param from 起始地址
+ * @param size 拷贝的大小
+ * @return 
+ */
+int memory_copy_uvm_data(uint32_t to, uint32_t page_dir, uint32_t from, uint32_t size);
 
 #endif

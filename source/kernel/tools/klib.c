@@ -199,3 +199,29 @@ void pannic(const char* file, int line, const char* func, const char* cond) {
         hlt();
     }
 }
+
+int strings_count(char** start) {
+    int count = 0;
+    if (!start) {
+        return count;
+    }
+    while (*start++) {
+        count++;
+    }
+    return count;
+}
+
+char* get_file_name(const char* name) {
+    char* s = name;
+
+    // 定位到结束符
+    while (*s != '\0') {
+        s++;
+    }
+
+    // 反向搜索，直到找到反斜杆或者到文件开头
+    while ((*s != '\\') && (*s != '/') && (s >= name)) {
+        s--;
+    }
+    return s + 1;
+}
