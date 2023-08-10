@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-07 23:15:38
+ * @LastEditTime: 2023-08-08 21:59:56
  * @Description:
  */
 #include "core/task.h"
@@ -399,88 +399,141 @@ static int load_phdr(int file, Elf32_Phdr* phdr, uint32_t page_dir) {
  * @param  page_dir 加载到哪一个页表
  * @return 入口地址
  */
-static uint32_t load_elf_file(task_t* task, const char* name, uint32_t page_dir) {
+static uint32_t load_elf_file (task_t * task, const char * name, uint32_t page_dir) {
     Elf32_Ehdr elf_hdr;
     Elf32_Phdr elf_phdr;
 
-    int file = sys_open(name, 0);
+    // 以只读方式打开
+    int file = sys_open(name, 0);   
     if (file < 0) {
-        log_printf("open elf failed %s", name);
+        log_printf("open file failed.%s", name);
         goto load_failed;
     }
-    int cnt = sys_read(file, (char*)&elf_hdr, sizeof(elf_hdr));
-    // 读取文件头
+
+    // 先读取文件头
+    int cnt = sys_read(file, (char *)&elf_hdr, sizeof(elf_hdr));
     if (cnt < sizeof(Elf32_Ehdr)) {
         log_printf("elf hdr too small. size=%d", cnt);
         goto load_failed;
     }
-    // 检查
-    if ((elf_hdr.e_ident[0] != ELF_MAGIC) || (elf_hdr.e_ident[1] != 'E') || (elf_hdr.e_ident[2] != 'L') || (elf_hdr.e_ident[3] != 'F')) {
+
+    // 做点必要性的检查。当然可以再做其它检查
+    if ((elf_hdr.e_ident[0] != ELF_MAGIC) || (elf_hdr.e_ident[1] != 'E')
+        || (elf_hdr.e_ident[2] != 'L') || (elf_hdr.e_ident[3] != 'F')) {
         log_printf("check elf indent failed.");
         goto load_failed;
     }
-    // 起始地址
+
+    // 必须是可执行文件和针对386处理器的类型，且有入口
+    if ((elf_hdr.e_type != ET_EXEC) || (elf_hdr.e_machine != ET_386) || (elf_hdr.e_entry == 0)) {
+        log_printf("check elf type or entry failed.");
+        goto load_failed;
+    }
+
+    // 必须有程序头部
+    if ((elf_hdr.e_phentsize == 0) || (elf_hdr.e_phoff == 0)) {
+        log_printf("none programe header");
+        goto load_failed;
+    }
+
+    // 然后从中加载程序头，将内容拷贝到相应的位置
     uint32_t e_phoff = elf_hdr.e_phoff;
     for (int i = 0; i < elf_hdr.e_phnum; i++, e_phoff += elf_hdr.e_phentsize) {
-        // 移动到 program header
         if (sys_lseek(file, e_phoff, 0) < 0) {
             log_printf("read file failed");
             goto load_failed;
         }
-        // 读取表项
-        cnt = sys_read(file, (char*)&elf_phdr, sizeof(Elf32_Phdr));
+
+        // 读取程序头后解析，这里不用读取到新进程的页表中，因为只是临时使用下
+        cnt = sys_read(file, (char *)&elf_phdr, sizeof(Elf32_Phdr));
         if (cnt < sizeof(Elf32_Phdr)) {
             log_printf("read file failed");
             goto load_failed;
         }
-        // 做一些简单的检查
+
+        // 简单做一些检查，如有必要，可自行加更多
+        // 主要判断是否是可加载的类型，并且要求加载的地址必须是用户空间
         if ((elf_phdr.p_type != PT_LOAD) || (elf_phdr.p_vaddr < MEM_TASK_BASE)) {
-            continue;
+           continue;
         }
-        // 加载当前 program header
+
+        // 加载当前程序头
         int err = load_phdr(file, &elf_phdr, page_dir);
         if (err < 0) {
             log_printf("load program hdr failed");
             goto load_failed;
         }
-    }
+   }
+
     sys_close(file);
     return elf_hdr.e_entry;
+
 load_failed:
     if (file >= 0) {
         sys_close(file);
     }
+
     return 0;
 }
 
 int sys_execve(char* name, char** argv, char** env) {
-    // 当前进程
     task_t* task = task_current();
-    // 原页表
+
+    // 现在开始加载了，先准备应用页表，由于所有操作均在内核区中进行，所以可以直接先切换到新页表
     uint32_t old_page_dir = task->tss.cr3;
-    // 创建新的页表
     uint32_t new_page_dir = memory_create_uvm();
     if (!new_page_dir) {
         goto exec_failed;
     }
-    // 加载 elf 文件中的内容到新的页表中
-    uint32_t entry = load_elf_file(task, name, new_page_dir);
+
+    // 加载elf文件到内存中。要放在开启新页表之后，这样才能对相应的内存区域写
+    uint32_t entry = load_elf_file(task, name, new_page_dir);  // 暂时置用task->name表示
     if (entry == 0) {
         goto exec_failed;
     }
-    // 更新页表
+
+    // 准备用户栈空间，预留环境环境及参数的空间
+    uint32_t stack_top = MEM_TASK_STACK_TOP;
+    int err = memory_alloc_for_page_dir(
+        new_page_dir,
+        MEM_TASK_STACK_TOP - MEM_TASK_STACK_SIZE,
+        MEM_TASK_STACK_SIZE,
+        PTE_P | PTE_U | PTE_W);
+    if (err < 0) {
+        goto exec_failed;
+    }
+
+    // 加载完毕，为程序的执行做必要准备
+    // 注意，exec的作用是替换掉当前进程，所以只要改变当前进程的执行流即可
+    // 当该进程恢复运行时，像完全重新运行一样，所以用户栈要设置成初始模式
+    // 运行地址要设备成整个程序的入口地址
+    syscall_frame_t* frame = (syscall_frame_t*)(task->tss.esp0 - sizeof(syscall_frame_t));
+    frame->eip = entry;
+    frame->eax = frame->ebx = frame->ecx = frame->edx = 0;
+    frame->esi = frame->edi = frame->ebp = 0;
+    frame->eflags = EFLAGS_DEFAULT | EFLAGS_IF;  // 段寄存器无需修改
+
+    // 内核栈不用设置，保持不变，后面调用memory_destroy_uvm并不会销毁内核栈的映射。
+    // 但用户栈需要更改, 同样要加上调用门的参数压栈空间
+    frame->esp = stack_top - sizeof(uint32_t) * SYSCALL_PARAM_COUNT;
+
+    // 切换到新的页表
     task->tss.cr3 = new_page_dir;
-    mmu_set_page_dir(new_page_dir);
-    // 释放原来的页表
-    memory_destroy_uvm(old_page_dir);
+    mmu_set_page_dir(new_page_dir);  // 切换至新的页表。由于不用访问原栈及数据，所以并无问题
+
+    // 调整页表，切换成新的，同时释放掉之前的
+    // 当前使用的是内核栈，而内核栈并未映射到进程地址空间中，所以下面的释放没有问题
+    memory_destroy_uvm(old_page_dir);  // 再释放掉了原进程的内容空间
+
+    // 当从系统调用中返回时，将切换至新进程的入口地址运行，并且进程能够获取参数
+    // 注意，如果用户栈设置不当，可能导致返回后运行出现异常。可在gdb中使用nexti单步观察运行流程
     return 0;
-exec_failed:
-    // 创建新的页表失败
+
+exec_failed:  // 必要的资源释放
     if (new_page_dir) {
-        // 恢复成原来的页表
+        // 有页表空间切换，切换至旧页表，销毁新页表
         task->tss.cr3 = old_page_dir;
         mmu_set_page_dir(old_page_dir);
-        // 释放页表
         memory_destroy_uvm(new_page_dir);
     }
     return -1;

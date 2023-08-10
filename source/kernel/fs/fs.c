@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:42:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-07 22:29:26
+ * @LastEditTime: 2023-08-08 22:06:01
  * @Description:
  */
 #include "fs/fs.h"
@@ -12,9 +12,13 @@
 #include "tools/klib.h"
 
 #define TEMP_FILE_ID 100
-static uint8_t TEMP_ADDR[100 * 1024];
+#define TEMP_ADDR (8 * 1024 * 1024)  // 在0x800000处缓存原始
+
 static uint8_t* temp_pos;  // 当前位置
 
+/**
+ * 使用LBA48位模式读取磁盘
+ */
 static void read_disk(int sector, int sector_count, uint8_t* buf) {
     outb(0x1F6, (uint8_t)(0xE0));
 
@@ -44,9 +48,11 @@ static void read_disk(int sector, int sector_count, uint8_t* buf) {
     }
 }
 
-int sys_open(const char* name, int flag, ...) {
+/**
+ * 打开文件
+ */
+int sys_open(const char* name, int flags, ...) {
     if (name[0] == '/') {
-        // 暂时直接从扇区1000上读取, 读取大概40KB，足够了
         read_disk(5000, 80, (uint8_t*)TEMP_ADDR);
         temp_pos = (uint8_t*)TEMP_ADDR;
         return TEMP_FILE_ID;
@@ -55,6 +61,9 @@ int sys_open(const char* name, int flag, ...) {
     return -1;
 }
 
+/**
+ * 读取文件api
+ */
 int sys_read(int file, char* ptr, int len) {
     if (file == TEMP_FILE_ID) {
         kernel_memcpy(ptr, temp_pos, len);
@@ -64,10 +73,16 @@ int sys_read(int file, char* ptr, int len) {
     return -1;
 }
 
+/**
+ * 写文件
+ */
 int sys_write(int file, char* ptr, int len) {
     return -1;
 }
 
+/**
+ * 文件访问位置定位
+ */
 int sys_lseek(int file, int ptr, int dir) {
     if (file == TEMP_FILE_ID) {
         temp_pos = (uint8_t*)(ptr + TEMP_ADDR);
@@ -76,6 +91,8 @@ int sys_lseek(int file, int ptr, int dir) {
     return -1;
 }
 
+/**
+ * 关闭文件
+ */
 int sys_close(int file) {
-    
 }

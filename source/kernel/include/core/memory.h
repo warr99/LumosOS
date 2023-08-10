@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-22 09:30:44
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-07 23:21:18
+ * @LastEditTime: 2023-08-08 15:36:39
  * @Description:
  */
 #ifndef MEMORY_H
@@ -18,6 +18,8 @@
 #define MEM_EBDA_START 0x00080000
 #define MEM_TASK_BASE 0x80000000
 #define MEM_EXT_END (127 * 1024 * 1024)
+#define MEM_TASK_STACK_TOP (0xE0000000)            // 初始栈的位置
+#define MEM_TASK_STACK_SIZE (MEM_PAGE_SIZE * 500)  // 栈空间
 
 /**
  * @brief 虚拟地址-物理地址映射关系表
