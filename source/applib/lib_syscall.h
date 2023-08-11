@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-31 21:43:32
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-07 15:14:40
+ * @LastEditTime: 2023-08-11 10:48:46
  * @Description:
  */
 #ifndef LIB_SYSCALL_H
@@ -87,6 +87,12 @@ static inline int execve(const char* name, char* const* argv, char* const* env) 
     args.arg1 = (int)argv;
     args.arg2 = (int)env;
     return sys_call(&args);
+}
+
+static inline int yield(void) {
+    syscall_args_t args;
+    args.id = SYS_yield;
+    sys_call(&args);
 }
 
 #endif

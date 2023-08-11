@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:29:35
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-10 18:03:08
+ * @LastEditTime: 2023-08-11 10:50:59
  * @Description:
  */
 #ifndef TASK_H
@@ -107,7 +107,7 @@ void task_set_block(task_t* task);
  * @brief 使得当前任务主动让出CPU
  * @return {*} 0
  */
-int sys_sched_yield(void);
+int sys_yield(void);
 
 void task_dispatch(void);
 

@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-04 10:51:33
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-08 16:50:33
+ * @LastEditTime: 2023-08-11 10:51:12
  * @Description: 
  */
 #include "core/syscall.h"
@@ -17,6 +17,7 @@ static const syscall_handler_t sys_table[] = {
     [SYS_printmsg] = (syscall_handler_t)sys_print_msg,
     [SYS_fork] = (syscall_handler_t)sys_fork,
     [SYS_execve] = (syscall_handler_t)sys_execve,
+    [SYS_yield] = (syscall_handler_t)sys_yield,
 };
 
 void do_handler_syscall(syscall_frame_t* frame) {

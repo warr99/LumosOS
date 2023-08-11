@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-29 22:14:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-04 15:02:32
+ * @LastEditTime: 2023-08-11 10:48:11
  * @Description:
  */
 #ifndef SYSCALL_H
@@ -16,6 +16,7 @@
 #define SYS_printmsg 2
 #define SYS_fork 3
 #define SYS_execve 4
+#define SYS_yield 5
 
 /**
  * 系统调用的栈信息
