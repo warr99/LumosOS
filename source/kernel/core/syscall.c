@@ -2,13 +2,14 @@
  * @Author: warrior
  * @Date: 2023-08-04 10:51:33
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-12 10:36:00
+ * @LastEditTime: 2023-08-12 14:08:11
  * @Description:
  */
 #include "core/syscall.h"
 #include "core/task.h"
-#include "tools/log.h"
 #include "fs/fs.h"
+#include "tools/log.h"
+#include "core/memory.h"
 
 typedef int (*syscall_handler_t)(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3);
 
@@ -25,6 +26,10 @@ static const syscall_handler_t sys_table[] = {
     [SYS_write] = (syscall_handler_t)sys_write,
     [SYS_close] = (syscall_handler_t)sys_close,
     [SYS_lseek] = (syscall_handler_t)sys_lseek,
+
+    [SYS_isatty] = (syscall_handler_t)sys_isatty,
+    [SYS_sbrk] = (syscall_handler_t)sys_sbrk,
+    [SYS_fstat] = (syscall_handler_t)sys_fstat,
 };
 
 void do_handler_syscall(syscall_frame_t* frame) {

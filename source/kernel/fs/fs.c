@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:42:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-08 22:06:01
+ * @LastEditTime: 2023-08-12 14:12:32
  * @Description:
  */
 #include "fs/fs.h"
@@ -10,6 +10,7 @@
 #include "comm/cpu_instr.h"
 #include "core/task.h"
 #include "tools/klib.h"
+#include "tools/log.h"
 
 #define TEMP_FILE_ID 100
 #define TEMP_ADDR (8 * 1024 * 1024)  // 在0x800000处缓存原始
@@ -77,6 +78,12 @@ int sys_read(int file, char* ptr, int len) {
  * 写文件
  */
 int sys_write(int file, char* ptr, int len) {
+    if (file == 1) {
+        ptr[len] = '\0';
+        log_printf("%s", ptr);
+        return len;
+    }
+
     return -1;
 }
 
@@ -87,7 +94,9 @@ int sys_lseek(int file, int ptr, int dir) {
     if (file == TEMP_FILE_ID) {
         temp_pos = (uint8_t*)(ptr + TEMP_ADDR);
         return 0;
+    } else if (file == 0) {
     }
+
     return -1;
 }
 
@@ -95,4 +104,12 @@ int sys_lseek(int file, int ptr, int dir) {
  * 关闭文件
  */
 int sys_close(int file) {
+}
+
+int sys_isatty(int file) {
+    return -1;
+}
+
+int sys_fstat(int file, struct stat* st) {
+    return -1;
 }

@@ -1,5 +1,14 @@
+/*
+ * @Author: warrior
+ * @Date: 2023-08-07 16:14:57
+ * @LastEditors: warrior
+ * @LastEditTime: 2023-08-12 14:15:07
+ * @Description:
+ */
 #ifndef FS_H
 #define FS_H
+
+#include <sys/stat.h>
 
 /**
  * 打开一个文件或者创建一个文件描述符。
@@ -53,5 +62,9 @@ int sys_lseek(int file, int ptr, int dir);
  * @return      成功时返回0，如果出现错误，返回-1，并设置errno来指示错误类型。
  */
 int sys_close(int file);
+
+int sys_isatty(int file);
+
+int sys_fstat(int file, struct stat* st);
 
 #endif

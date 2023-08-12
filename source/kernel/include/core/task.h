@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:29:35
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-11 10:50:59
+ * @LastEditTime: 2023-08-12 15:00:35
  * @Description:
  */
 #ifndef TASK_H
@@ -32,6 +32,8 @@ typedef struct _task_t {
     list_node_t run_node;       // 作为就绪队列的节点
     list_node_t all_node;       // 作为进程队列的节点
     list_node_t wait_node;      // 作为等待队列的节点
+    uint32_t heap_start;        // 堆的顶层地址
+    uint32_t heap_end;          // 堆结束地址
     tss_t tss;
     int tss_sel;
     int pid;
@@ -53,10 +55,10 @@ typedef struct _task_manager_t {
 } task_manager_t;
 
 typedef struct _task_args_t {
-	uint32_t ret_addr;		// 返回地址
-	uint32_t argc;
-	char **argv;
-}task_args_t;
+    uint32_t ret_addr;  // 返回地址
+    uint32_t argc;
+    char** argv;
+} task_args_t;
 
 /**
  * @brief 任务管理器初始化

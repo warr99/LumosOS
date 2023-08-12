@@ -357,3 +357,44 @@ int memory_copy_uvm_data(uint32_t to, uint32_t page_dir, uint32_t from, uint32_t
 
     return 0;
 }
+
+/**
+ * @brief 增长应用程序的数据空间(堆)incr字节
+ * @param incr 增长的大小
+ * @return 成功时,返回新分配空间的起始地址;错误返回-1;当incr=0时,返回当前的heap_end
+ */
+char* sys_sbrk(int incr) {
+    task_t* task = task_current();
+    char* pre_heap_end = (char*)task->heap_end;
+    int pre_incr = incr;
+    ASSERT(incr >= 0);
+    if (incr == 0) {
+        log_printf("sys_sbrk(0), return %x", pre_heap_end);
+        return pre_heap_end;
+    }
+    uint32_t start = task->heap_end;
+    uint32_t end = start + incr;
+    int start_offset = start % MEM_PAGE_SIZE;
+    if (start_offset) {
+        if (start_offset + incr <= MEM_PAGE_SIZE) {
+            task->heap_end = end;
+            return pre_heap_end;
+        } else {
+            // 超过1页，先只调本页的
+            uint32_t curr_size = MEM_PAGE_SIZE - start_offset;
+            start += curr_size;
+            incr -= curr_size;
+        }
+    }
+    if (incr) {
+        uint32_t curr_size = end - start;
+        int err = memory_alloc_page_for(start, curr_size, PTE_P | PTE_U | PTE_W);
+        if (err < 0) {
+            log_printf("sbrk(%x): alloc mem failed.", incr);
+            return (char*)-1;
+        }
+    }
+    log_printf("sbrk(%d): end = 0x%x", pre_incr, end);
+    task->heap_end = end;
+    return (char*)pre_heap_end;
+}

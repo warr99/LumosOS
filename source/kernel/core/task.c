@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-11 11:40:18
+ * @LastEditTime: 2023-08-12 15:06:11
  * @Description:
  */
 #include "core/task.h"
@@ -115,6 +115,8 @@ int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp, int 
     task->slice_ticks = task->time_ticks;
     task->parent = (task_t*)0;
     task->sleep_ticks = 0;
+    task->heap_start = 0;
+    task->heap_end = 0;
     list_node_init(&task->all_node);
     list_node_init(&task->run_node);
     list_node_init(&task->wait_node);
@@ -190,6 +192,8 @@ void task_first_init(void) {
     uint32_t first_start = (uint32_t)first_task_enrty;
 
     task_init(&task_manager.first_task, "first task", first_start, first_start + alloc_size, 0);
+    task_manager.first_task.heap_start = (uint32_t)e_first_task;
+    task_manager.first_task.heap_end = (uint32_t)e_first_task;
     write_tr(task_manager.first_task.tss_sel);
     task_manager.curr_task = &task_manager.first_task;
     // 更新CR3寄存器的内容，以切换到新的任务的页表，从而实现不同任务间的地址隔离和内存保护
@@ -469,6 +473,8 @@ static uint32_t load_elf_file(task_t* task, const char* name, uint32_t page_dir)
             log_printf("load program hdr failed");
             goto load_failed;
         }
+        task->heap_start = elf_phdr.p_vaddr + elf_phdr.p_memsz;
+        task->heap_end = task->heap_start;
     }
 
     sys_close(file);

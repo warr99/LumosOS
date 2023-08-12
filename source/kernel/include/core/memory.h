@@ -94,8 +94,10 @@ uint32_t memory_get_paddr(uint32_t page_dir, uint32_t vaddr);
  * @param page_dir 新页表
  * @param from 起始地址
  * @param size 拷贝的大小
- * @return 
+ * @return
  */
 int memory_copy_uvm_data(uint32_t to, uint32_t page_dir, uint32_t from, uint32_t size);
+
+char* sys_sbrk(int incr);
 
 #endif
