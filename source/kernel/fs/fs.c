@@ -9,6 +9,7 @@
 #include "comm/boot_info.h"
 #include "comm/cpu_instr.h"
 #include "core/task.h"
+#include "dev/console.h"
 #include "tools/klib.h"
 #include "tools/log.h"
 
@@ -79,8 +80,9 @@ int sys_read(int file, char* ptr, int len) {
  */
 int sys_write(int file, char* ptr, int len) {
     if (file == 1) {
-        ptr[len] = '\0';
-        log_printf("%s", ptr);
+        // ptr[len] = '\0';
+        // log_printf("%s", ptr);
+        console_write(0, ptr, len);
         return len;
     }
 

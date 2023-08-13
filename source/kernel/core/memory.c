@@ -1,5 +1,6 @@
 #include "core/memory.h"
 #include "cpu/mmu.h"
+#include "dev./console.h"
 #include "tools/klib.h"
 #include "tools/log.h"
 
@@ -126,9 +127,10 @@ void create_kernel_table(void) {
     extern uint8_t s_text[], e_text[], s_data[], kernel_base[];
     // 内核逻辑地址 物理地址映射表
     static memory_map_t kernel_map[] = {
-        {kernel_base, s_text, kernel_base, PTE_W},       // 内核栈区
-        {s_text, e_text, s_text, 0},                     // 内核代码区
-        {s_data, (void*)MEM_EBDA_START, s_data, PTE_W},  // 内核数据区
+        {kernel_base, s_text, kernel_base, PTE_W},                                             // 内核栈区
+        {s_text, e_text, s_text, 0},                                                           // 内核代码区
+        {s_data, (void*)MEM_EBDA_START, s_data, PTE_W},                                        // 内核数据区
+        {(void*)CONSOLE_DISP_ADDR, (void*)CONSOLE_DISP_END, (void*)CONSOLE_DISP_ADDR, PTE_W},  // 显存区域
 
         // 扩展存储空间一一映射，方便直接操作
         {(void*)MEM_EXT_START, (void*)MEM_EXT_END, (void*)MEM_EXT_START, PTE_W},
