@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-12 21:13:17
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-12 23:21:00
+ * @LastEditTime: 2023-08-13 16:40:26
  * @Description:
  */
 #ifndef CONSOLE_H
@@ -15,6 +15,8 @@
 #define CONSOLE_ROW_MAX 25                      // 显存区域行数
 #define CONSOLE_COL_MAX 80                      // 显存区域列数
 #define CONSOLE_NR 1                            // 显存区域列数
+
+#define ASCII_ESC 0x1b  // ESC 的 ASCII 码
 
 // 各种颜色
 typedef enum _cclor_t {
@@ -40,23 +42,28 @@ typedef enum _cclor_t {
  * 描述显示的字符
  */
 typedef union {
-	struct {
-		char c;						// 显示的字符
-		char foreground : 4;		// 前景色
-		char background : 3;		// 背景色
-	};
+    struct {
+        char c;               // 显示的字符
+        char foreground : 4;  // 前景色
+        char background : 3;  // 背景色
+    };
 
-	uint16_t v;
-}disp_char_t;
+    uint16_t v;
+} disp_char_t;
 
 /**
  * 描述一个显示区域
  */
 typedef struct _console_t {
-    disp_char_t* disp_base;          // 当前显示区域的起始地址
-    int display_rows, display_cols;  // 行,列
-    int cursor_row, cursor_col;      // 光标所在行,列
-    cclor_t foreground, background;  // 前后景色
+    enum {
+        CONSOLE_WRITE_NORMAL,			// 普通模式
+        CONSOLE_WRITE_ESC,				// ESC转义序列
+    }write_state;
+    disp_char_t* disp_base;              // 当前显示区域的起始地址
+    int display_rows, display_cols;      // 行,列
+    int cursor_row, cursor_col;          // 光标所在行,列
+    cclor_t foreground, background;      // 前后景色
+    int old_cursor_row, old_cursor_col;  // 保存的光标行,列
 } console_t;
 
 /**

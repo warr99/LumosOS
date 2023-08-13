@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 13:56:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-13 15:19:27
+ * @LastEditTime: 2023-08-13 16:51:38
  * @Description:
  */
 #include <stdio.h>
@@ -15,6 +15,7 @@ int main(int argc, char** argv) {
     printf("Create Data: 2023-08\n");
     // printf("abef\b\b\b\bcd\n");  // \b: 输出cdef
     // printf("abcd\x7f;fg\n");     // 7f: 输出 abc;fg
+    // printf("\0337Hello, world!\0338HHHHH\n");
     for (int i = 0; i < argc; i++) {
         printf("arg: %s\n", (int)argv[i]);
     }

@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-12 21:56:03
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-13 15:18:39
+ * @LastEditTime: 2023-08-13 16:47:52
  * @Description:
  */
 #include "dev/console.h"
@@ -169,6 +169,9 @@ int console_init(void) {
         console->cursor_col = cursor_pos % console->display_cols;
         console->foreground = COLOR_White;
         console->background = COLOR_Black;
+        console->old_cursor_col = console->cursor_col;
+        console->old_cursor_row = console->cursor_row;
+        console->write_state = CONSOLE_WRITE_ESC;
         console->disp_base = (disp_char_t*)CONSOLE_DISP_ADDR + i * (CONSOLE_COL_MAX * CONSOLE_ROW_MAX);
 
         // clear_display(console);
@@ -176,33 +179,75 @@ int console_init(void) {
     return 0;
 }
 
+void save_cursor(console_t * console) {
+    console->old_cursor_col = console->cursor_col;
+    console->old_cursor_row = console->cursor_row;
+}
+
+void restore_cursor(console_t * console) {
+    console->cursor_col = console->old_cursor_col;
+    console->cursor_row = console->old_cursor_row;
+}
+
+static void write_normal(console_t* console, char c) {
+    switch (c) {
+        case ASCII_ESC:
+            console->write_state = CONSOLE_WRITE_ESC;
+            break;
+        case 0x7F:  // 删除
+            erase_backword(console);
+            break;
+        case '\b':  // 左移一个字符
+            move_backword(console, 1);
+            break;
+        case '\r':
+            move_to_col0(console);
+            break;
+        case '\n':
+            // 移动到第一列
+            move_to_col0(console);
+            // 移动到下一行
+            move_next_line(console);
+            break;
+        default: {
+            if ((c >= ' ') && (c <= '~')) {
+                show_char(console, c);
+            }
+            break;
+        }
+    }
+}
+
+static void write_esc(console_t* console, char c) {
+    switch (c) {
+        case '7':		// ESC 7 保存光标
+            save_cursor(console);
+            console->write_state = CONSOLE_WRITE_NORMAL;
+            break;
+        case '8':		// ESC 8 恢复光标
+            restore_cursor(console);
+            console->write_state = CONSOLE_WRITE_NORMAL;
+            break;
+        default:
+            console->write_state = CONSOLE_WRITE_NORMAL;
+            break;
+    }
+}
+
 int console_write(int dev, char* data, int size) {
     console_t* console = console_buf + dev;
     int len;
     for (len = 0; len < size; len++) {
         char c = *data++;
-        switch (c) {
-            case 0x7F:  // 删除
-                erase_backword(console);
+        switch (console->write_state) {
+            case CONSOLE_WRITE_NORMAL:
+                write_normal(console, c);
                 break;
-            case '\b':  // 左移一个字符
-                move_backword(console, 1);
+            case CONSOLE_WRITE_ESC:
+                write_esc(console, c);
                 break;
-            case '\r':
-                move_to_col0(console);
+            default:
                 break;
-            case '\n':
-                // 移动到第一列
-                move_to_col0(console);
-                // 移动到下一行
-                move_next_line(console);
-                break;
-            default: {
-                if ((c >= ' ') && (c <= '~')) {
-                    show_char(console, c);
-                }
-                break;
-            }
         }
     }
     update_cursor_pos(console);
