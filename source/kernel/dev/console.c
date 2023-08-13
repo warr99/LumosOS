@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-12 21:56:03
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-13 14:11:13
+ * @LastEditTime: 2023-08-13 15:18:39
  * @Description:
  */
 #include "dev/console.h"
@@ -75,6 +75,17 @@ static void scroll_up(console_t* console, int lines) {
     console->cursor_row -= lines;
 }
 
+static void move_to_col0(console_t* console) {
+    console->cursor_col = 0;
+}
+
+static void move_next_line(console_t* console) {
+    console->cursor_row++;
+    if (console->cursor_row >= console->display_rows) {
+        scroll_up(console, 1);
+    }
+}
+
 /**
  * @brief 将光标往前移n个字符
  * @param  console 显示区域
@@ -95,6 +106,27 @@ static void move_forward(console_t* console, int n) {
     }
 }
 
+/**
+ * @brief 左移n个字符
+ * @param  console 显示区域
+ * @param  n n个字符
+ * @return 0->成功 -1->失败
+ */
+static int move_backword(console_t* console, int n) {
+    int status = -1;
+    for (int i = 0; i < n; i++) {
+        if (console->cursor_col > 0) {
+            console->cursor_col--;
+            status = 0;
+        } else if (console->cursor_row > 0) {
+            console->cursor_row--;
+            console->cursor_col = console->display_cols - 1;
+            status = 0;
+        }
+    }
+    return status;
+}
+
 static void show_char(console_t* console, char c) {
     int offset = console->cursor_col + console->cursor_row * console->display_cols;
     disp_char_t* p = console->disp_base + offset;
@@ -102,6 +134,18 @@ static void show_char(console_t* console, char c) {
     p->foreground = console->foreground;
     p->background = console->background;
     move_forward(console, 1);
+}
+
+/**
+ * @brief  擦除前一字符
+ * @param console 显示区域
+ * @return void
+ */
+static void erase_backword(console_t* console) {
+    if (move_backword(console, 1) == 0) {
+        show_char(console, ' ');
+        move_backword(console, 1);
+    }
 }
 
 static void clear_display(console_t* console) {
@@ -132,32 +176,33 @@ int console_init(void) {
     return 0;
 }
 
-static void move_to_col0(console_t* console) {
-    console->cursor_col = 0;
-}
-
-static void move_next_line(console_t* console) {
-    console->cursor_row++;
-    if (console->cursor_row >= console->display_rows) {
-        scroll_up(console, 1);
-    }
-}
-
 int console_write(int dev, char* data, int size) {
     console_t* console = console_buf + dev;
     int len;
     for (len = 0; len < size; len++) {
         char c = *data++;
         switch (c) {
+            case 0x7F:  // 删除
+                erase_backword(console);
+                break;
+            case '\b':  // 左移一个字符
+                move_backword(console, 1);
+                break;
+            case '\r':
+                move_to_col0(console);
+                break;
             case '\n':
                 // 移动到第一列
                 move_to_col0(console);
                 // 移动到下一行
                 move_next_line(console);
                 break;
-            default:
-                show_char(console, c);
+            default: {
+                if ((c >= ' ') && (c <= '~')) {
+                    show_char(console, c);
+                }
                 break;
+            }
         }
     }
     update_cursor_pos(console);
