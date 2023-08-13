@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-12 21:13:17
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-13 16:40:26
+ * @LastEditTime: 2023-08-13 21:39:35
  * @Description:
  */
 #ifndef CONSOLE_H
@@ -16,7 +16,8 @@
 #define CONSOLE_COL_MAX 80                      // 显存区域列数
 #define CONSOLE_NR 1                            // 显存区域列数
 
-#define ASCII_ESC 0x1b  // ESC 的 ASCII 码
+#define ASCII_ESC 0x1b    // ESC 的 ASCII 码
+#define ESC_PARAM_MAX 10  // 最多支持的ESC [ 参数数量
 
 // 各种颜色
 typedef enum _cclor_t {
@@ -56,14 +57,17 @@ typedef union {
  */
 typedef struct _console_t {
     enum {
-        CONSOLE_WRITE_NORMAL,			// 普通模式
-        CONSOLE_WRITE_ESC,				// ESC转义序列
-    }write_state;
+        CONSOLE_WRITE_NORMAL,  // 普通模式
+        CONSOLE_WRITE_ESC,     // ESC转义序列
+        CONSOLE_WRITE_SQUARE,  // ESC [接收状态
+    } write_state;
     disp_char_t* disp_base;              // 当前显示区域的起始地址
     int display_rows, display_cols;      // 行,列
     int cursor_row, cursor_col;          // 光标所在行,列
     cclor_t foreground, background;      // 前后景色
     int old_cursor_row, old_cursor_col;  // 保存的光标行,列
+    int esc_param[ESC_PARAM_MAX];        // 存储参数
+    int curr_param_index;                // 当前正在处理保存的参数索引
 } console_t;
 
 /**
