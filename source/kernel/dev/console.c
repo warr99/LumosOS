@@ -2,13 +2,38 @@
  * @Author: warrior
  * @Date: 2023-08-12 21:56:03
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-13 10:37:10
+ * @LastEditTime: 2023-08-13 14:11:13
  * @Description:
  */
 #include "dev/console.h"
+#include "comm/cpu_instr.h"
 #include "tools/klib.h"
 
 static console_t console_buf[CONSOLE_NR];
+
+/**
+ * @brief 读取当前光标的位置
+ */
+static int read_cursor_pos(void) {
+    int pos;
+    outb(0x3D4, 0x0F);  // 写低地址
+    pos = inb(0x3D5);
+    outb(0x3D4, 0x0E);  // 写高地址
+    pos |= inb(0x3D5) << 8;
+    return pos;
+}
+
+/**
+ * @brief 更新光标的位置
+ */
+static void update_cursor_pos(console_t* console) {
+    uint16_t pos = console->cursor_row * console->display_cols + console->cursor_col;
+
+    outb(0x3D4, 0x0F);  // 写低地址
+    outb(0x3D5, (uint8_t)(pos & 0xFF));
+    outb(0x3D4, 0x0E);  // 写高地址
+    outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+}
 
 /**
  * @brief 清空某些行
@@ -93,15 +118,16 @@ int console_init(void) {
     for (int i = 0; i < CONSOLE_NR; i++) {
         console_t* console = console_buf + i;
 
+        int cursor_pos = read_cursor_pos();
         console->display_cols = CONSOLE_COL_MAX;
         console->display_rows = CONSOLE_ROW_MAX;
-        console->cursor_col = 0;
-        console->cursor_row = 0;
+        console->cursor_row = cursor_pos / console->display_cols;
+        console->cursor_col = cursor_pos % console->display_cols;
         console->foreground = COLOR_White;
         console->background = COLOR_Black;
         console->disp_base = (disp_char_t*)CONSOLE_DISP_ADDR + i * (CONSOLE_COL_MAX * CONSOLE_ROW_MAX);
 
-        clear_display(console);
+        // clear_display(console);
     }
     return 0;
 }
@@ -134,6 +160,7 @@ int console_write(int dev, char* data, int size) {
                 break;
         }
     }
+    update_cursor_pos(console);
     return len;
 }
 

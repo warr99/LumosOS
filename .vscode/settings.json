@@ -27,7 +27,8 @@
         "bitmap.h": "c",
         "memory.h": "c",
         "mmu.h": "c",
-        "syscall.h": "c"
+        "syscall.h": "c",
+        "console.h": "c"
     },
     "fileheader.configObj": {
         "createFileTime": true,
