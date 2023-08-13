@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-12 21:56:03
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-13 21:52:52
+ * @LastEditTime: 2023-08-13 23:08:46
  * @Description:
  */
 #include "dev/console.h"
@@ -192,32 +192,32 @@ void restore_cursor(console_t* console) {
 /**
  * 清空参数表
  */
-static void clear_esc_param (console_t * console) {
-	kernel_memset(console->esc_param, 0, sizeof(console->esc_param));
-	console->curr_param_index = 0;
+static void clear_esc_param(console_t* console) {
+    kernel_memset(console->esc_param, 0, sizeof(console->esc_param));
+    console->curr_param_index = 0;
 }
 
 /**
  * 设置字符属性
  */
-static void set_font_style (console_t * console) {
-	static const cclor_t color_table[] = {
-			COLOR_Black, COLOR_Red, COLOR_Green, COLOR_Yellow, // 0-3
-			COLOR_Blue, COLOR_Magenta, COLOR_Cyan, COLOR_White, // 4-7
-	};
+static void set_font_style(console_t* console) {
+    static const cclor_t color_table[] = {
+        COLOR_Black, COLOR_Red, COLOR_Green, COLOR_Yellow,   // 0-3
+        COLOR_Blue, COLOR_Magenta, COLOR_Cyan, COLOR_White,  // 4-7
+    };
 
-	for (int i = 0; i < console->curr_param_index; i++) {
-		int param = console->esc_param[i];
-		if ((param >= 30) && (param <= 37)) {  // 前景色：30-37
-			console->foreground = color_table[param - 30];
-		} else if ((param >= 40) && (param <= 47)) {
-			console->background = color_table[param - 40];
-		} else if (param == 39) { // 39=默认前景色
-			console->foreground = COLOR_White;
-		} else if (param == 49) { // 49=默认背景色
-			console->background = COLOR_Black;
-		}
-	}
+    for (int i = 0; i < console->curr_param_index; i++) {
+        int param = console->esc_param[i];
+        if ((param >= 30) && (param <= 37)) {  // 前景色：30-37
+            console->foreground = color_table[param - 30];
+        } else if ((param >= 40) && (param <= 47)) {
+            console->background = color_table[param - 40];
+        } else if (param == 39) {  // 39=默认前景色
+            console->foreground = COLOR_White;
+        } else if (param == 49) {  // 49=默认背景色
+            console->background = COLOR_Black;
+        }
+    }
 }
 
 static void write_normal(console_t* console, char c) {
@@ -270,6 +270,60 @@ static void write_esc(console_t* console, char c) {
     }
 }
 
+/**
+ * @brief 光标左移，但不起始左边界，也不往上移
+ */
+static void move_left (console_t * console, int n) {
+    // 至少移致动1个
+    if (n == 0) {
+        n = 1;
+    }
+
+    int col = console->cursor_col - n;
+    console->cursor_col = (col >= 0) ? col : 0;
+}
+
+/**
+ * @brief 光标右移，但不起始右边界，也不往下移
+ */
+static void move_right (console_t * console, int n) {
+    // 至少移致动1个
+    if (n == 0) {
+        n = 1;
+    }
+
+    int col = console->cursor_col + n;
+    if (col >= console->display_cols) {
+        console->cursor_col = console->display_cols - 1;
+    } else {
+        console->cursor_col = col;
+    }
+}
+
+/**
+ * 移动光标
+ */
+static void move_cursor(console_t * console) {
+    console->cursor_row = console->esc_param[0];
+    console->cursor_col = console->esc_param[1];
+}
+
+/**
+ * 擦除字符操作
+ */
+static void erase_in_display(console_t * console) {
+	if (console->curr_param_index < 0) {
+		return;
+	}
+
+	int param = console->esc_param[0];
+	if (param == 2) {
+		// 擦除整个屏幕
+		erase_rows(console, 0, console->display_rows - 1);
+        console->cursor_col = console->cursor_row = 0;
+	}
+}
+
 static void write_esc_square(console_t* console, char c) {
     if ((c >= '0') && (c <= '9')) {
         // 解析当前参数
@@ -286,6 +340,19 @@ static void write_esc_square(console_t* console, char c) {
         switch (c) {
             case 'm':  // 设置字符属性
                 set_font_style(console);
+                break;
+            case 'D':  // 光标左移n个位置 ESC [Pn D
+                move_left(console, console->esc_param[0]);
+                break;
+            case 'C':
+                move_right(console, console->esc_param[0]);
+                break;
+            case 'H':
+            case 'f':
+                move_cursor(console);
+                break;
+            case 'J':
+                erase_in_display(console);
                 break;
             default:
                 break;
