@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-14 10:40:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-14 15:05:20
+ * @LastEditTime: 2023-08-14 15:35:23
  * @Description:
  */
 #include "dev/kbd.h"
@@ -85,7 +85,7 @@ static inline int is_make_code(uint8_t key_code) {
  * 处理单字符的标准键
  */
 static void do_normal_key(uint8_t raw_code) {
-    char key = get_key(raw_code);  // 去掉最高位
+    char key = get_key(raw_code);  // 去掉最高l位
     int is_make = is_make_code(raw_code);
 
     // 暂时只处理按键按下
@@ -97,6 +97,11 @@ static void do_normal_key(uint8_t raw_code) {
         case KEY_LSHIFT:
             kbd_state.lshift_press = is_make;  // 仅设置标志位
             break;
+        case KEY_CAPS:
+            if (is_make) {
+                kbd_state.caps_lock = ~kbd_state.caps_lock;
+            }
+            break;
         default:
             if (is_make) {
                 // 根据shift控制取相应的字符，这里有进行大小写转换或者shif转换
@@ -105,7 +110,15 @@ static void do_normal_key(uint8_t raw_code) {
                 } else {
                     key = map_table[key].normal;  // 第1功能
                 }
-
+                if (kbd_state.caps_lock) {
+                    if ((key >= 'A') && (key <= 'Z')) {
+                        // 大写转小写
+                        key = key - 'A' + 'a';
+                    } else if ((key >= 'a') && (key <= 'z')) {
+                        // 小写转大小
+                        key = key - 'a' + 'A';
+                    }
+                }
                 // 最后，不管是否是控制字符，都会被写入
                 log_printf("key=%c", key);
             }
