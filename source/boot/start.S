@@ -40,7 +40,7 @@
 	.extern boot_entry
 _start:
     // 采用平坦模式,所有的段寄存器全部指向0
- 	mov $0, %ax
+fsd 	mov $0, %ax
 	mov %ax, %ds
 	mov %ax, %es
 	mov %ax, %ss
