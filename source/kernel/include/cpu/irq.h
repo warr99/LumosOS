@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-15 09:49:17
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-27 15:16:11
+ * @LastEditTime: 2023-08-14 11:00:33
  * @Description: 中断处理相关
  */
 #ifndef IRQ_H
@@ -30,6 +30,7 @@
 #define IRQ21_CP 21
 
 #define IRQ0_TIMER 0x20
+#define IRQ1_KEYBOARD 0x21
 
 #define PIC0_ICW1 0x20
 #define PIC0_ICW2 0x21

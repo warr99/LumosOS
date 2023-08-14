@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-25 10:10:58
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-08 21:56:05
+ * @LastEditTime: 2023-08-14 14:19:26
  * @Description:
  */
 #include "applib/lib_syscall.h"
@@ -36,7 +36,7 @@ int first_task_main(void) {
     }
     pid = getpid();
     for (;;) {
-        print_msg("task id = %d", pid);
+        // print_msg("task id = %d", pid);
         msleep(1000);
     }
 }
