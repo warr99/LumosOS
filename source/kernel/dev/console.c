@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-12 21:56:03
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-13 23:08:46
+ * @LastEditTime: 2023-08-15 16:46:12
  * @Description:
  */
 #include "dev/console.h"
@@ -158,24 +158,30 @@ static void clear_display(console_t* console) {
     }
 }
 
-int console_init(void) {
-    for (int i = 0; i < CONSOLE_NR; i++) {
-        console_t* console = console_buf + i;
+int console_init(int index) {
+    console_t* console = console_buf + index;
 
+    if (index = 0) {
         int cursor_pos = read_cursor_pos();
-        console->display_cols = CONSOLE_COL_MAX;
-        console->display_rows = CONSOLE_ROW_MAX;
         console->cursor_row = cursor_pos / console->display_cols;
         console->cursor_col = cursor_pos % console->display_cols;
-        console->foreground = COLOR_White;
-        console->background = COLOR_Black;
-        console->old_cursor_col = console->cursor_col;
-        console->old_cursor_row = console->cursor_row;
-        console->write_state = CONSOLE_WRITE_ESC;
-        console->disp_base = (disp_char_t*)CONSOLE_DISP_ADDR + i * (CONSOLE_COL_MAX * CONSOLE_ROW_MAX);
-
-        // clear_display(console);
+    } else {
+        console->cursor_row = 0;
+        console->cursor_col = 0;
+        clear_display(console);
+        update_cursor_pos(console);
     }
+
+    console->display_cols = CONSOLE_COL_MAX;
+    console->display_rows = CONSOLE_ROW_MAX;
+
+    console->foreground = COLOR_White;
+    console->background = COLOR_Black;
+    console->old_cursor_col = console->cursor_col;
+    console->old_cursor_row = console->cursor_row;
+    console->write_state = CONSOLE_WRITE_ESC;
+    console->disp_base = (disp_char_t*)CONSOLE_DISP_ADDR + index * (CONSOLE_COL_MAX * CONSOLE_ROW_MAX);
+
     return 0;
 }
 
@@ -273,7 +279,7 @@ static void write_esc(console_t* console, char c) {
 /**
  * @brief 光标左移，但不起始左边界，也不往上移
  */
-static void move_left (console_t * console, int n) {
+static void move_left(console_t* console, int n) {
     // 至少移致动1个
     if (n == 0) {
         n = 1;
@@ -286,7 +292,7 @@ static void move_left (console_t * console, int n) {
 /**
  * @brief 光标右移，但不起始右边界，也不往下移
  */
-static void move_right (console_t * console, int n) {
+static void move_right(console_t* console, int n) {
     // 至少移致动1个
     if (n == 0) {
         n = 1;
@@ -303,7 +309,7 @@ static void move_right (console_t * console, int n) {
 /**
  * 移动光标
  */
-static void move_cursor(console_t * console) {
+static void move_cursor(console_t* console) {
     console->cursor_row = console->esc_param[0];
     console->cursor_col = console->esc_param[1];
 }
@@ -311,17 +317,17 @@ static void move_cursor(console_t * console) {
 /**
  * 擦除字符操作
  */
-static void erase_in_display(console_t * console) {
-	if (console->curr_param_index < 0) {
-		return;
-	}
+static void erase_in_display(console_t* console) {
+    if (console->curr_param_index < 0) {
+        return;
+    }
 
-	int param = console->esc_param[0];
-	if (param == 2) {
-		// 擦除整个屏幕
-		erase_rows(console, 0, console->display_rows - 1);
+    int param = console->esc_param[0];
+    if (param == 2) {
+        // 擦除整个屏幕
+        erase_rows(console, 0, console->display_rows - 1);
         console->cursor_col = console->cursor_row = 0;
-	}
+    }
 }
 
 static void write_esc_square(console_t* console, char c) {

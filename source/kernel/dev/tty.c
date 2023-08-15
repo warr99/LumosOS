@@ -2,11 +2,30 @@
  * @Author: warrior
  * @Date: 2023-08-15 10:32:56
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-15 10:52:46
+ * @LastEditTime: 2023-08-15 16:39:07
  * @Description: 该文件包含与TTY设备交互相关的函数。
  */
 #include "dev/tty.h"
+#include "dev/console.h"
 #include "dev/dev.h"
+#include "dev/kbd.h"
+#include "tools/log.h"
+
+static tty_t tty_devs[TTY_NR];
+
+/**
+ * @brief FIFO初始化
+ * @param  fifo fifo缓存
+ * @param  buf  缓存区域
+ * @param  size 大小
+ * @return {*}
+ */
+void tty_fifo_init(tty_fifo_t* fifo, char* buf, int size) {
+    fifo->buf = buf;
+    fifo->count = 0;
+    fifo->size = size;
+    fifo->read = fifo->write = 0;  // 读索引，写索引
+}
 
 /**
  * @brief 打开TTY设备以进行通信。
@@ -15,6 +34,17 @@
  * @return 成功返回0，失败返回错误代码。
  */
 int tty_open(device_t* dev) {
+    int index = dev->minor;
+    if ((index < 0) || (index > TTY_NR)) {
+        log_printf("open tty failed. incorrect tty num = %d", index);
+        return -1;
+    }
+    tty_t* tty = tty_devs + index;
+    tty_fifo_init(&tty->ofifo, tty->obuf, TTY_OBUF_SIZE);
+    tty_fifo_init(&tty->ififo, tty->ibuf, TTY_IBUF_SIZE);
+    tty->console_index = index;
+    kbd_init();
+    console_init(index);
     return 0;
 }
 
@@ -45,7 +75,7 @@ int tty_write(device_t* dev, int addr, char* buf, int size) {
 }
 
 /**
- * @brief 控制TTY设备的各个方面。
+ * @brief 控制TTY设备。
  *
  * @param dev 代表TTY设备的设备结构。
  * @param cmd 命令代码，指定要执行的操作。

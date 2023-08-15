@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-12 21:13:17
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-13 21:39:35
+ * @LastEditTime: 2023-08-15 16:51:05
  * @Description:
  */
 #ifndef CONSOLE_H
@@ -14,7 +14,7 @@
 #define CONSOLE_DISP_END (0xb8000 + 32 * 1024)  // 显存结束地址
 #define CONSOLE_ROW_MAX 25                      // 显存区域行数
 #define CONSOLE_COL_MAX 80                      // 显存区域列数
-#define CONSOLE_NR 1                            // 显存区域列数
+#define CONSOLE_NR 8                            // 显存区域列数
 
 #define ASCII_ESC 0x1b    // ESC 的 ASCII 码
 #define ESC_PARAM_MAX 10  // 最多支持的ESC [ 参数数量
@@ -72,9 +72,10 @@ typedef struct _console_t {
 
 /**
  * @brief 初始化显示区域
+ * @param 显示区域
  * @return {*}
  */
-int console_init(void);
+int console_init(int index);
 
 /**
  * @brief 往显示区域写入

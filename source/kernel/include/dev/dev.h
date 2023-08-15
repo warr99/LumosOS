@@ -53,7 +53,7 @@ int dev_read(int dev_id, int addr, char* buf, int size);
  * @brief 写指定字节的数据
  * @param dev_id dev_open() 返回的 dev_id
  * @param addr 写入的起始地址
- * @param buf 放到哪里
+ * @param buf 写入的数据
  * @param size 写入的数据量
  * @return 实际写入的数据量
  */
