@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:42:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-12 14:12:32
+ * @LastEditTime: 2023-08-16 10:36:33
  * @Description:
  */
 #include "fs/fs.h"
@@ -80,9 +80,9 @@ int sys_read(int file, char* ptr, int len) {
  */
 int sys_write(int file, char* ptr, int len) {
     if (file == 1) {
-        // ptr[len] = '\0';
-        // log_printf("%s", ptr);
-        console_write(0, ptr, len);
+        ptr[len] = '\0';
+        log_printf("%s", ptr);
+        // console_write(0, ptr, len);
         return len;
     }
 

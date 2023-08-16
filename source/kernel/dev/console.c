@@ -2,11 +2,12 @@
  * @Author: warrior
  * @Date: 2023-08-12 21:56:03
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-15 16:46:12
+ * @LastEditTime: 2023-08-16 13:44:19
  * @Description:
  */
 #include "dev/console.h"
 #include "comm/cpu_instr.h"
+#include "dev/tty.h"
 #include "tools/klib.h"
 
 static console_t console_buf[CONSOLE_NR];
@@ -241,8 +242,6 @@ static void write_normal(console_t* console, char c) {
             move_to_col0(console);
             break;
         case '\n':
-            // 移动到第一列
-            move_to_col0(console);
             // 移动到下一行
             move_next_line(console);
             break;
@@ -367,11 +366,16 @@ static void write_esc_square(console_t* console, char c) {
     }
 }
 
-int console_write(int dev, char* data, int size) {
-    console_t* console = console_buf + dev;
-    int len;
-    for (len = 0; len < size; len++) {
-        char c = *data++;
+int console_write(tty_t* tty) {
+    console_t* console = console_buf + tty->console_index;
+    int len = 0;
+    do {
+        char c;
+        int err = tty_fifo_get(&tty->ofifo, &c);
+        if (err < 0) {
+            break;
+        }
+        sem_notify(&tty->osem);
         switch (console->write_state) {
             case CONSOLE_WRITE_NORMAL:
                 write_normal(console, c);
@@ -385,7 +389,10 @@ int console_write(int dev, char* data, int size) {
             default:
                 break;
         }
-    }
+        len++;
+
+    } while (1);
+
     update_cursor_pos(console);
     return len;
 }

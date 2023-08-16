@@ -2,13 +2,14 @@
  * @Author: warrior
  * @Date: 2023-08-12 21:13:17
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-15 16:51:05
+ * @LastEditTime: 2023-08-15 17:59:00
  * @Description:
  */
 #ifndef CONSOLE_H
 #define CONSOLE_H
 
 #include "comm/types.h"
+#include "dev/tty.h"
 
 #define CONSOLE_DISP_ADDR 0xb8000               // 显存的默认起始地址
 #define CONSOLE_DISP_END (0xb8000 + 32 * 1024)  // 显存结束地址
@@ -79,12 +80,10 @@ int console_init(int index);
 
 /**
  * @brief 往显示区域写入
- * @param  dev 往哪个区域写
- * @param  data 写入的数据
- * @param  size 写入的大小
+ * @param  tty tty设备
  * @return {*}
  */
-int console_write(int dev, char* data, int size);
+int console_write(tty_t* tty);
 
 /**
  * @brief 关闭一个显示区域

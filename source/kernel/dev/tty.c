@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-15 10:32:56
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-15 16:39:07
+ * @LastEditTime: 2023-08-16 13:50:45
  * @Description: 该文件包含与TTY设备交互相关的函数。
  */
 #include "dev/tty.h"
@@ -12,6 +12,55 @@
 #include "tools/log.h"
 
 static tty_t tty_devs[TTY_NR];
+
+static tty_t* get_tty(device_t* dev) {
+    int tty = dev->minor;
+    if ((tty < 0) || (tty >= TTY_NR) || (!dev->open_count)) {
+        log_printf("tty is not opened. tty = %d", tty);
+        return (tty_t*)0;
+    }
+
+    return tty_devs + tty;
+}
+
+/**
+ * @brief 从缓冲区取数据
+ * @param  fifo 缓冲区
+ * @param  c 写到 c
+ * @return 成功 0 失败 -1
+ */
+int tty_fifo_get(tty_fifo_t* fifo, char* c) {
+    if (fifo->count <= 0) {
+        return -1;
+    }
+
+    *c = fifo->buf[fifo->read++];
+    if (fifo->read >= fifo->size) {
+        fifo->read = 0;
+    }
+    fifo->count--;
+    return 0;
+}
+
+/**
+ * @brief 往缓冲区写数据
+ * @param  fifo 缓冲区
+ * @param  c 要写入的 c
+ * @return 成功 0 失败 -1
+ */
+int tty_fifo_put(tty_fifo_t* fifo, char c) {
+    if (fifo->count >= fifo->size) {
+        return -1;
+    }
+
+    fifo->buf[fifo->write++] = c;
+    if (fifo->write >= fifo->size) {
+        fifo->write = 0;
+    }
+    fifo->count++;
+
+    return 0;
+}
 
 /**
  * @brief FIFO初始化
@@ -41,8 +90,10 @@ int tty_open(device_t* dev) {
     }
     tty_t* tty = tty_devs + index;
     tty_fifo_init(&tty->ofifo, tty->obuf, TTY_OBUF_SIZE);
+    sem_init(&tty->osem, TTY_OBUF_SIZE);
     tty_fifo_init(&tty->ififo, tty->ibuf, TTY_IBUF_SIZE);
     tty->console_index = index;
+    tty->oflags = TTY_OCRLF;
     kbd_init();
     console_init(index);
     return 0;
@@ -71,6 +122,33 @@ int tty_read(device_t* dev, int addr, char* buf, int size) {
  * @return 写入的字节数。
  */
 int tty_write(device_t* dev, int addr, char* buf, int size) {
+    if (size < 0) {
+        return -1;
+    }
+    tty_t* tty = get_tty(dev);
+    if (!tty) {
+        return -1;
+    }
+    int len = 0;
+    while (size) {
+        char c = *buf++;
+        if ((c == '\n') && (tty->oflags & TTY_OCRLF)) {
+            sem_wait(&tty->osem);
+            int err = tty_fifo_put(&tty->ofifo, '\r');
+            if (err < 0) {
+                break;
+            }
+        }
+
+        sem_wait(&tty->osem);
+        int err = tty_fifo_put(&tty->ofifo, c);
+        if (err < 0) {
+            break;
+        }
+        len++;
+        size--;
+    }
+    console_write(tty);
     return size;
 }
 
