@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:42:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-16 15:27:12
+ * @LastEditTime: 2023-08-16 21:26:22
  * @Description:
  */
 #include "fs/fs.h"
@@ -10,6 +10,7 @@
 #include "comm/cpu_instr.h"
 #include "core/task.h"
 #include "dev/console.h"
+#include "dev/dev.h"
 #include "fs/file.h"
 #include "tools/klib.h"
 #include "tools/log.h"
@@ -18,6 +19,16 @@
 #define TEMP_ADDR (8 * 1024 * 1024)  // 在0x800000处缓存原始
 
 static uint8_t* temp_pos;  // 当前位置
+
+/**
+ * @brief 检查路径是否正常
+ */
+static int is_path_valid(const char* path) {
+    if ((path == (const char*)0) || (path[0] == '\0')) {
+        return 0;
+    }
+    return 1;
+}
 
 /**
  * 使用LBA48位模式读取磁盘
@@ -55,12 +66,55 @@ static void read_disk(int sector, int sector_count, uint8_t* buf) {
  * 打开文件
  */
 int sys_open(const char* name, int flags, ...) {
-    if (name[0] == '/') {
-        read_disk(5000, 80, (uint8_t*)TEMP_ADDR);
-        temp_pos = (uint8_t*)TEMP_ADDR;
-        return TEMP_FILE_ID;
-    }
+    if (kernel_strncmp(name, "tty", 3) == 0) {
+        if (!is_path_valid(name)) {
+            log_printf("path is not valid.");
+            return -1;
+        }
+        int fd = -1;
+        file_t* file = file_alloc();
+        if (file) {
+            fd = task_alloc_fd(file);
+            if (fd < 0) {
+                goto sys_open_failed;
+            }
+        } else {
+            goto sys_open_failed;
+        }
+        if (kernel_strlen(name) < 5) {
+            goto sys_open_failed;
+        }
 
+        int num = name[4] - '0';
+        int dev_id = dev_open(DEV_TTY, num, 0);
+        if (dev_id < 0) {
+            goto sys_open_failed;
+        }
+
+        file->dev_id = dev_id;
+        file->mode = 0;
+        file->pos = 0;
+        file->ref = 1;
+        file->type = FILE_TTY;
+        kernel_strncpy(file->file_name, name, FILE_NAME_SIZE);
+        return fd;
+    sys_open_failed:
+        if (file) {
+            file_free(file);
+        }
+
+        if (fd >= 0) {
+            task_remove_fd(fd);
+        }
+        return -1;
+
+    } else {
+        if (name[0] == '/') {
+            read_disk(5000, 80, (uint8_t*)TEMP_ADDR);
+            temp_pos = (uint8_t*)TEMP_ADDR;
+            return TEMP_FILE_ID;
+        }
+    }
     return -1;
 }
 
@@ -80,14 +134,14 @@ int sys_read(int file, char* ptr, int len) {
  * 写文件
  */
 int sys_write(int file, char* ptr, int len) {
-    if (file == 1) {
-        ptr[len] = '\0';
-        log_printf("%s", ptr);
-        // console_write(0, ptr, len);
-        return len;
+    file = 0; 
+    file_t* p_file = task_file(file);
+    if (!p_file) {
+        log_printf("file not opened");
+        return -1;
     }
 
-    return -1;
+    return dev_write(p_file->dev_id, 0, ptr, len);
 }
 
 /**
