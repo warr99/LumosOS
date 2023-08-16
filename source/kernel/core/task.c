@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-12 15:06:11
+ * @LastEditTime: 2023-08-16 20:22:23
  * @Description:
  */
 #include "core/task.h"
@@ -106,6 +106,34 @@ static void free_task(task_t* task) {
     mutex_unlock(&task_table_mutex);
 }
 
+file_t* task_file(int fd) {
+    if ((fd >= 0) && (fd < TASK_OFILE_NR)) {
+        file_t* file = task_current()->file_table[fd];
+        return file;
+    }
+
+    return (file_t*)0;
+}
+
+int task_alloc_fd(file_t* file) {
+    task_t* task = task_current();
+
+    for (int i = 0; i < TASK_OFILE_NR; i++) {
+        file_t* p = task->file_table[i];
+        if (p == (file_t*)0) {
+            task->file_table[i] = file;
+            return i;
+        }
+    }
+    return -1;
+}
+
+void task_remove_fd(int fd) {
+    if ((fd >= 0) && (fd < TASK_OFILE_NR)) {
+        task_current()->file_table[fd] = (file_t*)0;
+    }
+}
+
 int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp, int flag) {
     ASSERT(task != (task_t*)0);
     tss_init(task, entry, esp, flag);
@@ -120,6 +148,7 @@ int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp, int 
     list_node_init(&task->all_node);
     list_node_init(&task->run_node);
     list_node_init(&task->wait_node);
+    kernel_memset(&task->file_table, 0, sizeof(task->file_table));
     irq_state_t state = irq_enter_protection();
     task->pid = (uint32_t)task;
     list_insert_last(&task_manager.task_list, &task->all_node);

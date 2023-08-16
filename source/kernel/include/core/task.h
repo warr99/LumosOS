@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:29:35
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-12 15:00:35
+ * @LastEditTime: 2023-08-16 20:20:00
  * @Description:
  */
 #ifndef TASK_H
@@ -10,12 +10,14 @@
 
 #include "comm/types.h"
 #include "cpu/cpu.h"
+#include "fs/file.h"
 #include "tools/list.h"
 
 #define TASK_NAME_SIZE 32
 #define TASK_TIME_SLICE_DEFAULT 10
 
 #define TASK_FLAGS_SYSTEM (1 << 0)
+#define TASK_OFILE_NR 128
 
 typedef struct _task_t {
     enum {
@@ -35,6 +37,7 @@ typedef struct _task_t {
     uint32_t heap_start;        // 堆的顶层地址
     uint32_t heap_end;          // 堆结束地址
     tss_t tss;
+    file_t* file_table[TASK_OFILE_NR];
     int tss_sel;
     int pid;
     struct _task_t* parent;  // 父进程
@@ -133,4 +136,23 @@ int sys_fork(void);
 
 int sys_execve(char* name, char** argv, char** env);
 
+/**
+ * @brief 获取当前进程指定的文件描述符
+ * @param  fd 索引
+ * @return 文件描述符
+ */
+file_t* task_file(int fd);
+
+/**
+ * @brief 为指定的file分配一个新的文件id
+ * @param  file 文件描述符
+ * @return 成功返回索引 失败返回-1
+ */
+int task_alloc_fd(file_t* file);
+
+/**
+ * @brief 移除任务中打开的文件fd
+ * @param  fd 索引
+ */
+void task_remove_fd(int fd);
 #endif
