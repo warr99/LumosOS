@@ -29,7 +29,8 @@
         "mmu.h": "c",
         "syscall.h": "c",
         "console.h": "c",
-        "kbd.h": "c"
+        "kbd.h": "c",
+        "file.h": "c"
     },
     "fileheader.configObj": {
         "createFileTime": true,

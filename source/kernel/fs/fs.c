@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:42:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-16 10:36:33
+ * @LastEditTime: 2023-08-16 15:27:12
  * @Description:
  */
 #include "fs/fs.h"
@@ -10,6 +10,7 @@
 #include "comm/cpu_instr.h"
 #include "core/task.h"
 #include "dev/console.h"
+#include "fs/file.h"
 #include "tools/klib.h"
 #include "tools/log.h"
 
@@ -114,4 +115,8 @@ int sys_isatty(int file) {
 
 int sys_fstat(int file, struct stat* st) {
     return -1;
+}
+
+void fs_init(void) {
+    file_table_init();
 }

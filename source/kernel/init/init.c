@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-12 19:56:55
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-27 16:30:00
+ * @LastEditTime: 2023-08-16 15:10:28
  * @Description:
  */
 
@@ -16,6 +16,7 @@
 #include "dev/console.h"
 #include "dev/kbd.h"
 #include "dev/time.h"
+#include "fs/fs.h"
 #include "ipc/sem.h"
 #include "os_cfg.h"
 #include "tools/klib.h"
@@ -29,10 +30,10 @@ void kernel_init(boot_info_t* boot_info) {
     log_init();
 
     memory_init(boot_info);
+    fs_init();
     time_init();
 
     task_manager_init();
-
 }
 
 /**

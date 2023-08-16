@@ -2,13 +2,19 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:14:57
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-12 14:15:07
+ * @LastEditTime: 2023-08-16 15:22:14
  * @Description:
  */
 #ifndef FS_H
 #define FS_H
 
 #include <sys/stat.h>
+#include "fs/file.h"
+
+/**
+ * @brief 文件系统初始化
+ */
+void fs_init(void);
 
 /**
  * 打开一个文件或者创建一个文件描述符。
