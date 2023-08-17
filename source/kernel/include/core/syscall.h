@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-29 22:14:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-12 14:07:31
+ * @LastEditTime: 2023-08-17 11:23:32
  * @Description:
  */
 #ifndef SYSCALL_H
@@ -26,6 +26,7 @@
 #define SYS_isatty 55
 #define SYS_sbrk 56
 #define SYS_fstat 57
+#define SYS_dup 58
 
 #define SYS_printmsg 100
 

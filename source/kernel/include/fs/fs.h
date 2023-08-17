@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:14:57
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-16 15:22:14
+ * @LastEditTime: 2023-08-17 11:27:35
  * @Description:
  */
 #ifndef FS_H
@@ -72,5 +72,7 @@ int sys_close(int file);
 int sys_isatty(int file);
 
 int sys_fstat(int file, struct stat* st);
+
+int sys_dup(int file);
 
 #endif

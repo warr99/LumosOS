@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-11 14:36:10
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-12 14:06:08
+ * @LastEditTime: 2023-08-17 11:37:18
  * @Description:
  */
 #include "lib_syscall.h"
@@ -128,7 +128,7 @@ int lseek(int file, int ptr, int dir) {
 /**
  * 获取文件的状态
  */
-int fstat(int file, struct stat *st) {
+int fstat(int file, struct stat* st) {
     syscall_args_t args;
     args.id = SYS_fstat;
     args.arg0 = (int)file;
@@ -146,9 +146,16 @@ int isatty(int file) {
     return sys_call(&args);
 }
 
-void * sbrk(ptrdiff_t incr) {
+void* sbrk(ptrdiff_t incr) {
     syscall_args_t args;
     args.id = SYS_sbrk;
     args.arg0 = (int)incr;
-    return (void *)sys_call(&args);
+    return (void*)sys_call(&args);
+}
+
+int dup(int file) {
+    syscall_args_t args;
+    args.id = SYS_dup;
+    args.arg0 = (int)file;
+    return sys_call(&args);
 }

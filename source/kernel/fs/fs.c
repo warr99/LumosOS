@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:42:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-17 10:16:37
+ * @LastEditTime: 2023-08-17 11:29:59
  * @Description:
  */
 #include "fs/fs.h"
@@ -127,7 +127,7 @@ int sys_read(int file, char* ptr, int len) {
         temp_pos += len;
         return len;
     } else {
-        file = 0;
+        // file = 0;
         file_t* p_file = task_file(file);
         if (!p_file) {
             log_printf("file not opened");
@@ -142,7 +142,7 @@ int sys_read(int file, char* ptr, int len) {
  * 写文件
  */
 int sys_write(int file, char* ptr, int len) {
-    file = 0;
+    // file = 0;
     file_t* p_file = task_file(file);
     if (!p_file) {
         log_printf("file not opened");
@@ -181,4 +181,27 @@ int sys_fstat(int file, struct stat* st) {
 
 void fs_init(void) {
     file_table_init();
+}
+
+int sys_dup(int file) {
+	// 超出进程所能打开的全部，退出
+	if ((file < 0) && (file >= TASK_OFILE_NR)) {
+        log_printf("file(%d) is not valid.", file);
+		return -1;
+	}
+
+	file_t * p_file = task_file(file);
+	if (!p_file) {
+		log_printf("file not opened");
+		return -1;
+	}
+
+	int fd = task_alloc_fd(p_file);	// 新fd指向同一描述符
+	if (fd >= 0) {
+		p_file->ref++;		// 增加引用计数
+		return fd;
+	}
+
+	log_printf("No task file avaliable");
+    return -1;
 }

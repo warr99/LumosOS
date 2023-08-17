@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-04 10:51:33
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-12 14:08:11
+ * @LastEditTime: 2023-08-17 11:36:05
  * @Description:
  */
 #include "core/syscall.h"
@@ -30,6 +30,7 @@ static const syscall_handler_t sys_table[] = {
     [SYS_isatty] = (syscall_handler_t)sys_isatty,
     [SYS_sbrk] = (syscall_handler_t)sys_sbrk,
     [SYS_fstat] = (syscall_handler_t)sys_fstat,
+    [SYS_dup] = (syscall_handler_t)sys_dup,
 };
 
 void do_handler_syscall(syscall_frame_t* frame) {
