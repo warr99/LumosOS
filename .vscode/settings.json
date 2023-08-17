@@ -30,7 +30,8 @@
         "syscall.h": "c",
         "console.h": "c",
         "kbd.h": "c",
-        "file.h": "c"
+        "file.h": "c",
+        "tty.h": "c"
     },
     "fileheader.configObj": {
         "createFileTime": true,

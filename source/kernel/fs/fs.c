@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:42:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-16 21:26:22
+ * @LastEditTime: 2023-08-17 10:16:37
  * @Description:
  */
 #include "fs/fs.h"
@@ -126,6 +126,14 @@ int sys_read(int file, char* ptr, int len) {
         kernel_memcpy(ptr, temp_pos, len);
         temp_pos += len;
         return len;
+    } else {
+        file = 0;
+        file_t* p_file = task_file(file);
+        if (!p_file) {
+            log_printf("file not opened");
+            return -1;
+        }
+        return dev_read(p_file->dev_id, 0, ptr, len);
     }
     return -1;
 }
@@ -134,7 +142,7 @@ int sys_read(int file, char* ptr, int len) {
  * 写文件
  */
 int sys_write(int file, char* ptr, int len) {
-    file = 0; 
+    file = 0;
     file_t* p_file = task_file(file);
     if (!p_file) {
         log_printf("file not opened");

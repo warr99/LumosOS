@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-15 10:32:56
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-16 13:50:45
+ * @LastEditTime: 2023-08-17 10:38:33
  * @Description: 该文件包含与TTY设备交互相关的函数。
  */
 #include "dev/tty.h"
@@ -92,24 +92,13 @@ int tty_open(device_t* dev) {
     tty_fifo_init(&tty->ofifo, tty->obuf, TTY_OBUF_SIZE);
     sem_init(&tty->osem, TTY_OBUF_SIZE);
     tty_fifo_init(&tty->ififo, tty->ibuf, TTY_IBUF_SIZE);
+    sem_init(&tty->isem, 0);
     tty->console_index = index;
     tty->oflags = TTY_OCRLF;
+    tty->iflags = TTY_INCLR | TTY_IECHO;
     kbd_init();
     console_init(index);
     return 0;
-}
-
-/**
- * @brief 从TTY设备读取数据。
- *
- * @param dev 代表TTY设备的设备结构。
- * @param addr 要读取的地址。
- * @param buf 用于存储读取数据的缓冲区。
- * @param size 缓冲区大小和要读取的数据量。
- * @return 读取的字节数。
- */
-int tty_read(device_t* dev, int addr, char* buf, int size) {
-    return size;
 }
 
 /**
@@ -153,6 +142,51 @@ int tty_write(device_t* dev, int addr, char* buf, int size) {
 }
 
 /**
+ * @brief 从TTY设备读取数据。
+ *
+ * @param dev 代表TTY设备的设备结构。
+ * @param addr 要读取的地址。
+ * @param buf 用于存储读取数据的缓冲区。
+ * @param size 缓冲区大小和要读取的数据量。
+ * @return 读取的字节数。
+ */
+int tty_read(device_t* dev, int addr, char* buf, int size) {
+    if (size < 0) {
+        return -1;
+    }
+    tty_t* tty = get_tty(dev);
+    char* pbuf = buf;
+    int len = 0;
+    while (len < size) {
+        sem_wait(&tty->isem);
+        char ch;
+        tty_fifo_get(&tty->ififo, &ch);
+        switch (ch) {
+            case '\n':
+                if ((tty->iflags & TTY_INCLR) && (len < size - 1)) {
+                    *pbuf++ = '\r';
+                    len++;
+                }
+                *pbuf++ = '\n';
+                len++;
+                break;
+            default:
+                *pbuf++ = ch;
+                len++;
+                break;
+        }
+        if (tty->iflags & TTY_IECHO) {
+            tty_write(dev, 0, &ch, 1);
+        }
+
+        if ((ch = '\n') || (ch == '\r')) {
+            break;
+        }
+    }
+    return len;
+}
+
+/**
  * @brief 控制TTY设备。
  *
  * @param dev 代表TTY设备的设备结构。
@@ -171,6 +205,15 @@ int tty_control(device_t* dev, int cmd, int arg0, int arg1) {
  * @param dev 代表TTY设备的设备结构。
  */
 void tty_close(device_t* dev) {
+}
+
+void tty_in(int index, char ch) {
+    tty_t* tty = tty_devs + index;
+    if (sem_count(&tty->isem) >= TTY_IBUF_SIZE) {
+        return;
+    }
+    tty_fifo_put(&tty->ififo, ch);
+    sem_notify(&tty->isem);
 }
 
 /**

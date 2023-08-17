@@ -2,13 +2,14 @@
  * @Author: warrior
  * @Date: 2023-08-07 13:56:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-16 20:42:17
+ * @LastEditTime: 2023-08-17 10:25:08
  * @Description:
  */
 #include <stdio.h>
 #include "lib_syscall.h"
 
 int main(int argc, char** argv) {
+    char cmd_buf[256];
 #if 0
     // printf("123\033[2DHello,word!\n");  // 光标左移2，1Hello,word!
     // printf("123\033[2CHello,word!\n");  // 光标右移2，123  Hello,word!
@@ -33,7 +34,9 @@ int main(int argc, char** argv) {
     printf("Author: ChenXr\n");
     printf("Create Data: 2023-07\n");
     for (;;) {
-        printf("shell pid: %d\n", getpid());
-        msleep(1000);
+        gets(cmd_buf);
+          puts(cmd_buf);
+        // printf("shell pid: %d\n", getpid());
+        // msleep(1000);
     }
 }
