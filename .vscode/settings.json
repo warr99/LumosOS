@@ -31,7 +31,8 @@
         "console.h": "c",
         "kbd.h": "c",
         "file.h": "c",
-        "tty.h": "c"
+        "tty.h": "c",
+        "main.h": "c"
     },
     "fileheader.configObj": {
         "createFileTime": true,

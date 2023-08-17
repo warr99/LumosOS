@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-21 11:19:52
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-21 13:11:01
+ * @LastEditTime: 2023-08-17 23:36:58
  * @Description:
  */
 #include "ipc/sem.h"
@@ -15,7 +15,7 @@ void sem_init(sem_t* sem, int init_count) {
 }
 
 void sem_wait(sem_t* sem) {
-    irq_state_t state = irq_enter_protection();
+        irq_state_t state = irq_enter_protection();
     if (sem->count > 0) {
         sem->count--;
     } else {

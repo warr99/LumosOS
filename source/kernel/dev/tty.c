@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-15 10:32:56
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-17 16:45:28
+ * @LastEditTime: 2023-08-18 00:12:36
  * @Description: 该文件包含与TTY设备交互相关的函数。
  */
 #include "dev/tty.h"
@@ -145,7 +145,7 @@ int tty_write(device_t* dev, int addr, char* buf, int size) {
         size--;
     }
     console_write(tty);
-    return size;
+    return len;
 }
 
 /**
@@ -161,16 +161,29 @@ int tty_read(device_t* dev, int addr, char* buf, int size) {
     if (size < 0) {
         return -1;
     }
+
     tty_t* tty = get_tty(dev);
     char* pbuf = buf;
     int len = 0;
+
+    // 不断读取，直到遇到文件结束符或者行结束符
     while (len < size) {
+        // 等待可用的数据
         sem_wait(&tty->isem);
+
+        // 取出数据
         char ch;
         tty_fifo_get(&tty->ififo, &ch);
         switch (ch) {
+            case 0x7F:
+                if (len == 0) {
+                    continue;
+                }
+                len--;
+                pbuf--;
+                break;
             case '\n':
-                if ((tty->iflags & TTY_INCLR) && (len < size - 1)) {
+                if ((tty->iflags & TTY_INCLR) && (len < size - 1)) {  // \n变成\r\n
                     *pbuf++ = '\r';
                     len++;
                 }
@@ -182,14 +195,17 @@ int tty_read(device_t* dev, int addr, char* buf, int size) {
                 len++;
                 break;
         }
+
         if (tty->iflags & TTY_IECHO) {
             tty_write(dev, 0, &ch, 1);
         }
 
-        if ((ch = '\n') || (ch == '\r')) {
+        // 遇到一行结束，也直接跳出
+        if ((ch == '\r') || (ch == '\n')) {
             break;
         }
     }
+
     return len;
 }
 
