@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-12 21:13:17
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-15 17:59:00
+ * @LastEditTime: 2023-08-17 14:16:43
  * @Description:
  */
 #ifndef CONSOLE_H
@@ -91,5 +91,7 @@ int console_write(tty_t* tty);
  * @return {*}
  */
 void console_close(int dev);
+
+void console_select(int index);
 
 #endif

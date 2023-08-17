@@ -2,14 +2,16 @@
  * @Author: warrior
  * @Date: 2023-07-25 10:10:58
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-14 14:19:26
+ * @LastEditTime: 2023-08-17 16:40:20
  * @Description:
  */
 #include "applib/lib_syscall.h"
 #include "core/task.h"
+#include "dev/tty.h"
 #include "tools/log.h"
 
 int first_task_main(void) {
+#if 0
     int count = 3;
 
     int pid = getpid();
@@ -35,8 +37,27 @@ int first_task_main(void) {
         print_msg("parent: %d", count);
     }
     pid = getpid();
-    for (;;) {
-        // print_msg("task id = %d", pid);
-        msleep(1000);
+#endif
+    for (int i = 0; i < TTY_NR; i++) {
+        int pid = fork();
+        if (pid < 0) {
+            print_msg("create shell proc failed", 0);
+            break;
+        } else if (pid == 0) {
+            // 子进程
+            char tty_num[5] = "tty:?";
+            tty_num[4] = i + '0';
+            char* argv[] = {tty_num, (char*)0};
+            execve("/shell.elf", argv, (char**)0);
+            print_msg("create shell proc failed", 0);
+            while (1) {
+                msleep(10000);
+            }
+        }
     }
+
+    while (1) {
+        msleep(10000);
+    }
+    return 0;
 }

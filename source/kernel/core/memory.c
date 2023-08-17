@@ -396,7 +396,7 @@ char* sys_sbrk(int incr) {
             return (char*)-1;
         }
     }
-    log_printf("sbrk(%d): end = 0x%x", pre_incr, end);
+    // log_printf("sbrk(%d): end = 0x%x", pre_incr, end);
     task->heap_end = end;
     return (char*)pre_heap_end;
 }

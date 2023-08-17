@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 13:56:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-17 11:21:02
+ * @LastEditTime: 2023-08-17 16:38:53
  * @Description:
  */
 #include <stdio.h>
@@ -27,9 +27,10 @@ int main(int argc, char** argv) {
 
     printf("\033[2J\n");  // clear screen
 #endif
-    open("tty:0", 0);
+    open(argv[0], 0);
     dup(0);
     dup(0);
+    
     printf("Welcome \033[33;49mLumosOS\n");
     printf("\033[39;49m---------------\n");
     printf("VERSION: %s\n", OS_VERSION);

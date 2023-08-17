@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-15 10:31:50
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-17 09:55:43
+ * @LastEditTime: 2023-08-17 14:12:54
  * @Description:
  */
 #ifndef TTY_H
@@ -47,6 +47,8 @@ int tty_fifo_get(tty_fifo_t* fifo, char* c);
 
 int tty_fifo_put(tty_fifo_t* fifo, char c);
 
-void tty_in(int index, char ch);
+void tty_in(char ch);
+
+void tty_select(int tty);
 
 #endif

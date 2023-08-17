@@ -2,16 +2,18 @@
  * @Author: warrior
  * @Date: 2023-08-15 10:32:56
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-17 10:38:33
+ * @LastEditTime: 2023-08-17 16:45:28
  * @Description: 该文件包含与TTY设备交互相关的函数。
  */
 #include "dev/tty.h"
+#include "cpu/irq.h"
 #include "dev/console.h"
 #include "dev/dev.h"
 #include "dev/kbd.h"
 #include "tools/log.h"
 
 static tty_t tty_devs[TTY_NR];
+static int cur_tty = 0;
 
 static tty_t* get_tty(device_t* dev) {
     int tty = dev->minor;
@@ -30,7 +32,9 @@ static tty_t* get_tty(device_t* dev) {
  * @return 成功 0 失败 -1
  */
 int tty_fifo_get(tty_fifo_t* fifo, char* c) {
+    irq_state_t state = irq_enter_protection();
     if (fifo->count <= 0) {
+        irq_leave_protection(state);
         return -1;
     }
 
@@ -39,6 +43,7 @@ int tty_fifo_get(tty_fifo_t* fifo, char* c) {
         fifo->read = 0;
     }
     fifo->count--;
+    irq_leave_protection(state);
     return 0;
 }
 
@@ -49,7 +54,9 @@ int tty_fifo_get(tty_fifo_t* fifo, char* c) {
  * @return 成功 0 失败 -1
  */
 int tty_fifo_put(tty_fifo_t* fifo, char c) {
+    irq_state_t state = irq_enter_protection();
     if (fifo->count >= fifo->size) {
+        irq_leave_protection(state);
         return -1;
     }
 
@@ -58,7 +65,7 @@ int tty_fifo_put(tty_fifo_t* fifo, char c) {
         fifo->write = 0;
     }
     fifo->count++;
-
+    irq_leave_protection(state);
     return 0;
 }
 
@@ -207,13 +214,24 @@ int tty_control(device_t* dev, int cmd, int arg0, int arg1) {
 void tty_close(device_t* dev) {
 }
 
-void tty_in(int index, char ch) {
-    tty_t* tty = tty_devs + index;
+void tty_in(char ch) {
+    tty_t* tty = tty_devs + cur_tty;
+
+    // 辅助队列要有空闲空间可代写入
     if (sem_count(&tty->isem) >= TTY_IBUF_SIZE) {
         return;
     }
+
+    // 写入辅助队列，通知数据到达
     tty_fifo_put(&tty->ififo, ch);
     sem_notify(&tty->isem);
+}
+
+void tty_select(int tty) {
+    if (tty != cur_tty) {
+        console_select(tty);
+        cur_tty = tty;
+    }
 }
 
 /**

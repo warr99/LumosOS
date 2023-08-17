@@ -2,25 +2,29 @@
  * @Author: warrior
  * @Date: 2023-08-12 21:56:03
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-16 13:44:19
+ * @LastEditTime: 2023-08-17 17:06:02
  * @Description:
  */
 #include "dev/console.h"
 #include "comm/cpu_instr.h"
+#include "cpu/irq.h"
 #include "dev/tty.h"
 #include "tools/klib.h"
 
 static console_t console_buf[CONSOLE_NR];
+static int curr_console_index = 0;
 
 /**
  * @brief 读取当前光标的位置
  */
 static int read_cursor_pos(void) {
+    irq_state_t state = irq_enter_protection();
     int pos;
     outb(0x3D4, 0x0F);  // 写低地址
     pos = inb(0x3D5);
     outb(0x3D4, 0x0E);  // 写高地址
     pos |= inb(0x3D5) << 8;
+    irq_leave_protection(state);
     return pos;
 }
 
@@ -28,12 +32,15 @@ static int read_cursor_pos(void) {
  * @brief 更新光标的位置
  */
 static void update_cursor_pos(console_t* console) {
-    uint16_t pos = console->cursor_row * console->display_cols + console->cursor_col;
+    uint16_t pos = (console - console_buf) * (console->display_cols * console->display_rows);
+    pos += console->cursor_row * console->display_cols + console->cursor_col;
 
+    irq_state_t state = irq_enter_protection();
     outb(0x3D4, 0x0F);  // 写低地址
     outb(0x3D5, (uint8_t)(pos & 0xFF));
     outb(0x3D4, 0x0E);  // 写高地址
     outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+    irq_leave_protection(state);
 }
 
 /**
@@ -159,10 +166,16 @@ static void clear_display(console_t* console) {
     }
 }
 
-int console_init(int index) {
-    console_t* console = console_buf + index;
+int console_init(int idx) {
+    console_t* console = console_buf + idx;
 
-    if (index = 0) {
+    console->display_cols = CONSOLE_COL_MAX;
+    console->display_rows = CONSOLE_ROW_MAX;
+    console->disp_base = (disp_char_t*)CONSOLE_DISP_ADDR + idx * console->display_cols * console->display_rows;
+
+    console->foreground = COLOR_White;
+    console->background = COLOR_Black;
+    if (idx == 0) {
         int cursor_pos = read_cursor_pos();
         console->cursor_row = cursor_pos / console->display_cols;
         console->cursor_col = cursor_pos % console->display_cols;
@@ -170,19 +183,10 @@ int console_init(int index) {
         console->cursor_row = 0;
         console->cursor_col = 0;
         clear_display(console);
-        update_cursor_pos(console);
     }
 
-    console->display_cols = CONSOLE_COL_MAX;
-    console->display_rows = CONSOLE_ROW_MAX;
-
-    console->foreground = COLOR_White;
-    console->background = COLOR_Black;
-    console->old_cursor_col = console->cursor_col;
     console->old_cursor_row = console->cursor_row;
-    console->write_state = CONSOLE_WRITE_ESC;
-    console->disp_base = (disp_char_t*)CONSOLE_DISP_ADDR + index * (CONSOLE_COL_MAX * CONSOLE_ROW_MAX);
-
+    console->old_cursor_col = console->cursor_col;
     return 0;
 }
 
@@ -368,6 +372,7 @@ static void write_esc_square(console_t* console, char c) {
 
 int console_write(tty_t* tty) {
     console_t* console = console_buf + tty->console_index;
+
     int len = 0;
     do {
         char c;
@@ -377,25 +382,44 @@ int console_write(tty_t* tty) {
         }
         sem_notify(&tty->osem);
         switch (console->write_state) {
-            case CONSOLE_WRITE_NORMAL:
+            case CONSOLE_WRITE_NORMAL: {
                 write_normal(console, c);
                 break;
+            }
             case CONSOLE_WRITE_ESC:
                 write_esc(console, c);
                 break;
             case CONSOLE_WRITE_SQUARE:
                 write_esc_square(console, c);
                 break;
-            default:
-                break;
         }
         len++;
-
     } while (1);
 
-    update_cursor_pos(console);
+    if (tty->console_index == curr_console_index) {
+        update_cursor_pos(console);
+    }
     return len;
 }
 
 void console_close(int dev) {
+}
+
+void console_select(int idx) {
+    console_t* console = console_buf + idx;
+    if (console->disp_base == 0) {
+        // 可能没有初始化，先初始化一下
+        console_init(idx);
+    }
+
+    uint16_t pos = idx * console->display_cols * console->display_rows;
+
+    outb(0x3D4, 0xC);  // 写高地址
+    outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+    outb(0x3D4, 0xD);  // 写低地址
+    outb(0x3D5, (uint8_t)(pos & 0xFF));
+
+    // 更新光标到当前屏幕
+    curr_console_index = idx;
+    update_cursor_pos(console);
 }
