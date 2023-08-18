@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-11 14:36:10
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-17 11:37:18
+ * @LastEditTime: 2023-08-18 11:44:57
  * @Description:
  */
 #include "lib_syscall.h"
@@ -158,4 +158,11 @@ int dup(int file) {
     args.id = SYS_dup;
     args.arg0 = (int)file;
     return sys_call(&args);
+}
+
+void _exit(int status) {
+    syscall_args_t args;
+    args.id = SYS_exit;
+    args.arg0 = (int)status;
+    sys_call(&args);
 }

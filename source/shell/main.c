@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 13:56:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-18 11:18:33
+ * @LastEditTime: 2023-08-18 11:42:55
  * @Description:
  */
 #include "main.h"
@@ -80,6 +80,10 @@ static int do_echo(int argc, char** argv) {
     return 0;
 }
 
+static int do_exit(int argc, char** argv) {
+    exit(0);
+    return 0;
+}
 // 命令列表
 static const cli_cmd_t cmd_list[] = {
     {
@@ -96,6 +100,11 @@ static const cli_cmd_t cmd_list[] = {
         .name = "echo",
         .usage = "echo [-n count] msg -- echo something",
         .do_func = do_echo,
+    },
+    {
+        .name = "quit",
+        .usage = "quit -- quit from shell",
+        .do_func = do_exit,
     },
 };
 

@@ -6,10 +6,10 @@
  * @Description:
  */
 #include "core/syscall.h"
+#include "core/memory.h"
 #include "core/task.h"
 #include "fs/fs.h"
 #include "tools/log.h"
-#include "core/memory.h"
 
 typedef int (*syscall_handler_t)(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3);
 
@@ -31,6 +31,7 @@ static const syscall_handler_t sys_table[] = {
     [SYS_sbrk] = (syscall_handler_t)sys_sbrk,
     [SYS_fstat] = (syscall_handler_t)sys_fstat,
     [SYS_dup] = (syscall_handler_t)sys_dup,
+    [SYS_exit] = (syscall_handler_t)sys_exit,
 };
 
 void do_handler_syscall(syscall_frame_t* frame) {

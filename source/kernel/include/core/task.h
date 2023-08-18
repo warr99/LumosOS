@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:29:35
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-16 20:20:00
+ * @LastEditTime: 2023-08-18 13:35:44
  * @Description:
  */
 #ifndef TASK_H
@@ -26,6 +26,7 @@ typedef struct _task_t {
         TASK_SLEEP,
         TASK_READY,
         TASK_WAITTING,
+        TASK_ZOMBIE,
     } state;  // 任务状态
     int time_ticks;
     int slice_ticks;
@@ -40,6 +41,7 @@ typedef struct _task_t {
     file_t* file_table[TASK_OFILE_NR];
     int tss_sel;
     int pid;
+    int status;
     struct _task_t* parent;  // 父进程
 } task_t;
 
@@ -135,6 +137,8 @@ void sys_print_msg(char* fmt, int arg);
 int sys_fork(void);
 
 int sys_execve(char* name, char** argv, char** env);
+
+void sys_exit(int status);
 
 /**
  * @brief 获取当前进程指定的文件描述符

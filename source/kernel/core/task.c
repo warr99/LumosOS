@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-16 20:22:23
+ * @LastEditTime: 2023-08-18 13:37:04
  * @Description:
  */
 #include "core/task.h"
@@ -145,6 +145,7 @@ int task_init(task_t* task, const char* name, uint32_t entry, uint32_t esp, int 
     task->sleep_ticks = 0;
     task->heap_start = 0;
     task->heap_end = 0;
+    task->status = 0;
     list_node_init(&task->all_node);
     list_node_init(&task->run_node);
     list_node_init(&task->wait_node);
@@ -614,4 +615,22 @@ exec_failed:  // 必要的资源释放
         memory_destroy_uvm(new_page_dir);
     }
     return -1;
+}
+
+void sys_exit(int status) {
+    task_t* curr_task = task_current();
+    // 关闭所有已经打开的文件
+    for (int fd = 0; fd < TASK_OFILE_NR; fd++) {
+        file_t* file = curr_task->file_table[fd];
+        if (file) {
+            sys_close(fd);
+            curr_task->file_table[fd] = (file_t*)0;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+        }
+    }
+    irq_state_t state = irq_enter_protection();
+    curr_task->status = status;
+    curr_task->state = TASK_ZOMBIE;
+    task_set_block(curr_task);
+    task_dispatch();
+    irq_leave_protection(state);
 }

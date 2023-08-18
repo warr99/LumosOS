@@ -1,5 +1,12 @@
-#include "lib_syscall.h"
+/*
+ * @Author: warrior
+ * @Date: 2023-08-07 14:10:43
+ * @LastEditors: warrior
+ * @LastEditTime: 2023-08-18 13:34:50
+ * @Description:
+ */
 #include <stdlib.h>
+#include "lib_syscall.h"
 
 int main(int argc, char** argv);
 
@@ -9,5 +16,5 @@ void cstart(int argc, char** argv) {
     while (start < __bss_end__) {
         *start++ = 0;
     }
-    main(argc, argv);
+    exit(main(argc, argv));
 }
