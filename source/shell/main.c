@@ -2,11 +2,13 @@
  * @Author: warrior
  * @Date: 2023-08-07 13:56:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-18 00:11:48
+ * @LastEditTime: 2023-08-18 11:18:33
  * @Description:
  */
 #include "main.h"
+#include <getopt.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "lib_syscall.h"
 
@@ -20,7 +22,7 @@ static int do_help(int argc, char** argv) {
     const cli_cmd_t* start = cli.cmd_start;
     // 循环打印名称及用法
     while (start < cli.cmd_end) {
-        printf("%s -- %s\n", start->name, start->usage);
+        printf("%s\n", start->usage);
         start++;
     }
     return 0;
@@ -32,17 +34,68 @@ static int do_clear(int argc, char** argv) {
     return 0;
 }
 
+static int do_echo(int argc, char** argv) {
+    // 只有一个参数(echo) -> 等待用户输入
+    if (argc == 1) {
+        char msg_buf[128];
+        fgets(msg_buf, sizeof(msg_buf), stdin);
+        msg_buf[sizeof(msg_buf) - 1] = '\0';
+        puts(msg_buf);
+        return 0;
+    }
+    int count = 1;
+    int ch;
+    while ((ch = getopt(argc, argv, "n:h")) != -1) {
+        switch (ch) {
+            case 'h':
+                puts("echo echo any message");
+                puts("Usage: echo [-n count] msg");
+                optind = 1;  // getopt需要多次调用，需要重置
+                return 0;
+            case 'n':
+                count = atoi(optarg);
+                break;
+            case '?':
+                if (optarg) {
+                    fprintf(stderr, "Unknown option: -%s\n", optarg);
+                }
+                optind = 1;  // getopt需要多次调用，需要重置
+                return -1;
+            default:
+                break;
+        }
+    }
+    // 索引已经超过了最后一个参数的位置，意味着没有传入要发送的信息
+    if (optind > argc - 1) {
+        fprintf(stderr, "Message is empty \n");
+        optind = 1;  // getopt需要多次调用，需要重置
+        return -1;
+    }
+    // 循环打印消息
+    char* msg = argv[optind];
+    for (int i = 0; i < count; i++) {
+        puts(msg);
+    }
+    optind = 1;  // getopt需要多次调用，需要重置
+    return 0;
+}
+
 // 命令列表
 static const cli_cmd_t cmd_list[] = {
     {
         .name = "help",
-        .usage = "list support command",
+        .usage = "help -- list support command",
         .do_func = do_help,
     },
     {
         .name = "clear",
-        .usage = "clear screen",
+        .usage = "clear -- clear screen",
         .do_func = do_clear,
+    },
+    {
+        .name = "echo",
+        .usage = "echo [-n count] msg -- echo something",
+        .do_func = do_echo,
     },
 };
 
@@ -80,7 +133,7 @@ static const cli_cmd_t* find_builtin(const char* name) {
 static void run_builtin(const cli_cmd_t* cmd, int argc, char** argv) {
     int ret = cmd->do_func(argc, argv);
     if (ret < 0) {
-        fprintf(stderr,ESC_COLOR_ERROR"error: %d\n"ESC_COLOR_DEFAULT, ret);
+        fprintf(stderr, ESC_COLOR_ERROR "error: %d\n" ESC_COLOR_DEFAULT, ret);
     }
 }
 
@@ -144,7 +197,7 @@ int main(int argc, char** argv) {
             continue;
         }
         // 找不到命令，提示错误
-        fprintf(stderr, ESC_COLOR_ERROR"Unknown command: %s\n"ESC_COLOR_DEFAULT, cli.curr_input);
+        fprintf(stderr, ESC_COLOR_ERROR "Unknown command: %s\n" ESC_COLOR_DEFAULT, cli.curr_input);
     }
     return 0;
 }
