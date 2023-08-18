@@ -1,3 +1,17 @@
+/*
+ * @Author: warrior
+ * @Date: 2023-08-16 14:44:23
+ * @LastEditors: warrior
+ * @LastEditTime: 2023-08-18 15:43:36
+ * @Description: 
+ */
+/*
+ * @Author: warrior
+ * @Date: 2023-08-16 14:44:23
+ * @LastEditors: warrior
+ * @LastEditTime: 2023-08-18 15:43:23
+ * @Description: 
+ */
 #include "fs/file.h"
 #include "ipc/mutex.h"
 #include "tools/klib.h"
@@ -34,4 +48,11 @@ void file_table_init(void) {
     // 文件描述符表初始化
     kernel_memset(&file_table, 0, sizeof(file_table));
     mutex_init(&file_alloc_mutex);
+}
+
+
+void file_inc_ref (file_t * file) {
+    mutex_lock(&file_alloc_mutex);
+	file->ref++;
+    mutex_unlock(&file_alloc_mutex);
 }

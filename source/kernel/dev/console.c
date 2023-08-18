@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-12 21:56:03
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-17 17:06:02
+ * @LastEditTime: 2023-08-18 15:53:39
  * @Description:
  */
 #include "dev/console.h"
@@ -187,6 +187,7 @@ int console_init(int idx) {
 
     console->old_cursor_row = console->cursor_row;
     console->old_cursor_col = console->cursor_col;
+    mutex_init(&console->mutex);
     return 0;
 }
 
@@ -372,8 +373,8 @@ static void write_esc_square(console_t* console, char c) {
 
 int console_write(tty_t* tty) {
     console_t* console = console_buf + tty->console_index;
-
     int len = 0;
+    mutex_lock(&console->mutex);
     do {
         char c;
         int err = tty_fifo_get(&tty->ofifo, &c);
@@ -395,7 +396,7 @@ int console_write(tty_t* tty) {
         }
         len++;
     } while (1);
-
+    mutex_unlock(&console->mutex);
     if (tty->console_index == curr_console_index) {
         update_cursor_pos(console);
     }

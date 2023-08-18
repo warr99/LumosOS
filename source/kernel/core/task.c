@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-18 15:23:58
+ * @LastEditTime: 2023-08-18 15:45:08
  * @Description:
  */
 #include "core/task.h"
@@ -104,6 +104,21 @@ static void free_task(task_t* task) {
     mutex_lock(&task_table_mutex);
     task->name[0] = 0;
     mutex_unlock(&task_table_mutex);
+}
+
+/**
+ * @brief 从当前进程中拷贝已经打开的文件列表
+ */
+static void copy_opened_files(task_t* child_task) {
+    task_t* parent = task_current();
+
+    for (int i = 0; i < TASK_OFILE_NR; i++) {
+        file_t* file = parent->file_table[i];
+        if (file) {
+            file_inc_ref(file);
+            child_task->file_table[i] = parent->file_table[i];
+        }
+    }
 }
 
 file_t* task_file(int fd) {
@@ -364,6 +379,10 @@ int sys_fork(void) {
     if (err < 0) {
         goto fork_failed;
     }
+
+    // 拷贝打开的文件
+    copy_opened_files(child_task);
+    
     tss_t* tss = &child_task->tss;
     tss->eax = 0;
     tss->ebx = frame->ebx;

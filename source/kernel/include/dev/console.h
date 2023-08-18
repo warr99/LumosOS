@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-12 21:13:17
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-17 14:16:43
+ * @LastEditTime: 2023-08-18 15:51:42
  * @Description:
  */
 #ifndef CONSOLE_H
@@ -10,6 +10,7 @@
 
 #include "comm/types.h"
 #include "dev/tty.h"
+#include "ipc/mutex.h"
 
 #define CONSOLE_DISP_ADDR 0xb8000               // 显存的默认起始地址
 #define CONSOLE_DISP_END (0xb8000 + 32 * 1024)  // 显存结束地址
@@ -69,6 +70,7 @@ typedef struct _console_t {
     int old_cursor_row, old_cursor_col;  // 保存的光标行,列
     int esc_param[ESC_PARAM_MAX];        // 存储参数
     int curr_param_index;                // 当前正在处理保存的参数索引
+    mutex_t mutex;                       // 互斥锁
 } console_t;
 
 /**
