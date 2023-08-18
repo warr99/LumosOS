@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 13:56:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-18 11:42:55
+ * @LastEditTime: 2023-08-18 15:07:57
  * @Description:
  */
 #include "main.h"
@@ -84,6 +84,7 @@ static int do_exit(int argc, char** argv) {
     exit(0);
     return 0;
 }
+
 // 命令列表
 static const cli_cmd_t cmd_list[] = {
     {
@@ -146,6 +147,25 @@ static void run_builtin(const cli_cmd_t* cmd, int argc, char** argv) {
     }
 }
 
+static void run_exec_file(const char* path, int argc, char** argv) {
+    int pid = fork();
+    if (pid < 0) {
+        fprintf(stderr, "fork failed: %s", path);
+    } else if (pid == 0) {
+        // 以下供测试exit使用
+        for (int i = 0; i < argc; i++) {
+            msleep(1000);
+            printf("arg %d = %s\n", i, argv[i]);
+        }
+        exit(-1);
+    } else {
+        // 等待子进程执行完毕
+        int status;
+        int pid = wait(&status);
+        fprintf(stderr, "cmd %s result: %d, pid = %d\n", path, status, pid);
+    }
+}
+
 /**
  * 命令行初始化
  */
@@ -205,6 +225,7 @@ int main(int argc, char** argv) {
             run_builtin(cmd, argc, argv);
             continue;
         }
+        run_exec_file("", argc, argv);
         // 找不到命令，提示错误
         fprintf(stderr, ESC_COLOR_ERROR "Unknown command: %s\n" ESC_COLOR_DEFAULT, cli.curr_input);
     }

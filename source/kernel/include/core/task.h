@@ -140,6 +140,8 @@ int sys_execve(char* name, char** argv, char** env);
 
 void sys_exit(int status);
 
+int sys_wait(int* status);
+
 /**
  * @brief 获取当前进程指定的文件描述符
  * @param  fd 索引

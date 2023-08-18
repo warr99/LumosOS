@@ -55,9 +55,9 @@ int first_task_main(void) {
             }
         }
     }
-
-    while (1) {
-        msleep(10000);
+    for(;;) {
+        int status;
+        wait(&status);
     }
     return 0;
 }

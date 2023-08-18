@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-18 10:36:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-18 13:37:04
+ * @LastEditTime: 2023-08-18 15:23:58
  * @Description:
  */
 #include "core/task.h"
@@ -624,13 +624,69 @@ void sys_exit(int status) {
         file_t* file = curr_task->file_table[fd];
         if (file) {
             sys_close(fd);
-            curr_task->file_table[fd] = (file_t*)0;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+            curr_task->file_table[fd] = (file_t*)0;
         }
     }
+    // 是否有需要回收资源的子进程
+    int move_child = 0;
+    mutex_lock(&task_table_mutex);
+    // 找出当前进程的子进程,将其子进程全部交给first_task管理
+    for (int i = 0; i < TASK_NR; i++) {
+        task_t* task = task_table + i;
+        if (task->parent == curr_task) {
+            task->parent = &task_manager.first_task;
+            if (task->state = TASK_ZOMBIE) {
+                move_child = 1;
+            }
+        }
+    }
+    mutex_unlock(&task_table_mutex);
     irq_state_t state = irq_enter_protection();
+    task_t* parent = curr_task->parent;
+    // 如果有需要回收资源的子进程,而且父进程不是first_task
+    if (move_child && (parent != &task_manager.first_task)) {
+        if (task_manager.first_task.state == TASK_WAITTING) {
+            // 唤醒first_task,让其完成子进程的资源回收工作
+            task_set_ready(&task_manager.first_task);
+        }
+    }
+    // 唤醒父进程
+    if (parent->state == TASK_WAITTING) {
+        task_set_ready(curr_task->parent);
+    }
     curr_task->status = status;
     curr_task->state = TASK_ZOMBIE;
     task_set_block(curr_task);
     task_dispatch();
     irq_leave_protection(state);
+}
+
+int sys_wait(int* status) {
+    task_t* curr_task = task_current();
+    for (;;) {
+        mutex_lock(&task_table_mutex);
+        for (int i = 0; i < TASK_NR; i++) {
+            task_t* task = task_table + i;
+            if (task->parent != curr_task) {
+                continue;
+            }
+
+            if (task->state == TASK_ZOMBIE) {
+                int pid = task->pid;
+                *status = task->status;
+                memory_destroy_uvm(task->tss.cr3);
+                memory_free_one_page(task->tss.esp0 - MEM_PAGE_SIZE);
+                kernel_memset(task, 0, sizeof(task_t));
+
+                mutex_unlock(&task_table_mutex);
+                return pid;
+            }
+        }
+        mutex_unlock(&task_table_mutex);
+        irq_state_t state = irq_enter_protection();
+        task_set_block(curr_task);
+        curr_task->state = TASK_WAITTING;
+        task_dispatch();
+        irq_leave_protection(state);
+    }
 }

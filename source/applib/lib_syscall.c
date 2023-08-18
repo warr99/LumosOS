@@ -166,3 +166,10 @@ void _exit(int status) {
     args.arg0 = (int)status;
     sys_call(&args);
 }
+
+int wait(int* status) {
+    syscall_args_t args;
+    args.id = SYS_wait;
+    args.arg0 = (int)status;
+    sys_call(&args);
+}

@@ -63,4 +63,6 @@ int dup(int file);
 
 void _exit(int status);
 
+int wait(int* status);
+
 #endif
