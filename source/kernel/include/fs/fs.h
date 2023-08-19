@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:14:57
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-19 10:02:50
+ * @LastEditTime: 2023-08-19 11:02:11
  * @Description:
  */
 #ifndef FS_H
@@ -10,6 +10,10 @@
 
 #include <sys/stat.h>
 #include "fs/file.h"
+#include "ipc/mutex.h"
+#include "tools/list.h"
+
+#define FS_MOUNTP_SIZE 512
 
 struct _fs_t;
 
@@ -27,8 +31,18 @@ typedef struct _fs_op_t {
     int (*stat)(file_t* file, struct stat* st);                     // 获取文件或文件系统对象的元数据信息
 } fs_op_t;
 
+typedef enum _fs_type_t {
+    FS_DEVFS,
+} fs_type_t;
+
 typedef struct _fs_t {
-    fs_op_t* op;  // 文件系统操作接口
+    char mount_point[FS_MOUNTP_SIZE];  // 文件系统名称
+    fs_op_t* op;                       // 文件系统操作接口
+    fs_type_t type;                    // 文件系统类型
+    void* data;                        // 扩充数据
+    int dev_id;                        // 设备id
+    list_node_t node;                  // 链表节点
+    mutex_t* mutex;                    // 互斥锁
 } fs_t;
 
 /**

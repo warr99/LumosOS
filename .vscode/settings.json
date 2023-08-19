@@ -32,7 +32,8 @@
         "kbd.h": "c",
         "file.h": "c",
         "tty.h": "c",
-        "main.h": "c"
+        "main.h": "c",
+        "fs.h": "c"
     },
     "fileheader.configObj": {
         "createFileTime": true,
