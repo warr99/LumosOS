@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:14:57
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-19 11:02:11
+ * @LastEditTime: 2023-08-19 14:36:00
  * @Description:
  */
 #ifndef FS_H
@@ -46,9 +46,30 @@ typedef struct _fs_t {
 } fs_t;
 
 /**
- * @brief 文件系统初始化
+ * @brief 转换目录为数字
+ * @param path 目录
+ * @param num 存储结果
  */
-void fs_init(void);
+int path_to_num(const char* path, int* num);
+
+/**
+ * @brief 获取下一级子目录
+ * @param path 目录
+ */
+const char* path_next_child(const char* path);
+
+/**
+ * @brief 判断路径是否以str开头
+ * @param path 路径
+ * @param str str
+ * @return 1 or 0
+ */
+int path_begin_with(const char* path, const char* str);
+
+    /**
+     * @brief 文件系统初始化
+     */
+    void fs_init(void);
 
 /**
  * 打开一个文件或者创建一个文件描述符。

@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-25 10:10:58
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-19 09:55:28
+ * @LastEditTime: 2023-08-19 14:53:49
  * @Description:
  */
 #include "applib/lib_syscall.h"
@@ -45,8 +45,8 @@ int first_task_main(void) {
             break;
         } else if (pid == 0) {
             // 子进程
-            char tty_num[5] = "tty:?";
-            tty_num[4] = i + '0';
+            char tty_num[] = "/dev/tty?";
+            tty_num[sizeof(tty_num)-2] = i + '0';
             char* argv[] = {tty_num, (char*)0};
             execve("/shell.elf", argv, (char**)0);
             print_msg("create shell proc failed", 0);

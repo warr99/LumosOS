@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:42:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-19 11:39:01
+ * @LastEditTime: 2023-08-19 15:37:06
  * @Description:
  */
 #include "fs/fs.h"
@@ -32,6 +32,17 @@ static int is_path_valid(const char* path) {
         return 0;
     }
     return 1;
+}
+
+/**
+ * @brief 判断文件描述符是否正确
+ */
+static int is_fd_bad (int file) {
+	if ((file < 0) && (file >= TASK_OFILE_NR)) {
+		return 1;
+	}
+
+	return 0;
 }
 
 /**
@@ -149,58 +160,98 @@ mount_failed:
     return (fs_t*)0;
 }
 
+int path_begin_with (const char * path, const char * str) {
+	const char * s1 = path, * s2 = str;
+	while (*s1 && *s2 && (*s1 == *s2)) {
+		s1++;
+		s2++;
+	}
+	return *s2 == '\0';
+}
+
+static void fs_protect (fs_t * fs) {
+	if (fs->mutex) {
+		mutex_lock(fs->mutex);
+	}
+}
+
+static void fs_unprotect (fs_t * fs) {
+	if (fs->mutex) {
+		mutex_unlock(fs->mutex);
+	}
+}
+
+int path_to_num(const char* path, int* num) {
+    int n = 0;
+
+    const char* c = path;
+    while (*c && *c != '/') {
+        n = n * 10 + *c - '0';
+        c++;
+    }
+    *num = n;
+    return 0;
+}
+
+const char* path_next_child(const char* path) {
+    const char* c = path;
+
+    while (*c && (*c++ == '/')) {
+    }
+    while (*c && (*c++ != '/')) {
+    }
+    return *c ? c : (const char*)0;
+}
+
 /**
  * 打开文件
  */
 int sys_open(const char* name, int flags, ...) {
-    if (kernel_strncmp(name, "tty", 3) == 0) {
-        if (!is_path_valid(name)) {
-            log_printf("path is not valid.");
-            return -1;
-        }
-        int fd = -1;
-        file_t* file = file_alloc();
-        if (file) {
-            fd = task_alloc_fd(file);
-            if (fd < 0) {
-                goto sys_open_failed;
-            }
-        } else {
-            goto sys_open_failed;
-        }
-        if (kernel_strlen(name) < 5) {
-            goto sys_open_failed;
-        }
+    if (kernel_strncmp(name, "/shell.elf", 3) == 0) {
+        read_disk(5000, 80, (uint8_t*)TEMP_ADDR);
+        temp_pos = (uint8_t*)TEMP_ADDR;
+        return TEMP_FILE_ID;
+    }
 
-        int num = name[4] - '0';
-        int dev_id = dev_open(DEV_TTY, num, 0);
-        if (dev_id < 0) {
-            goto sys_open_failed;
-        }
-
-        file->dev_id = dev_id;
-        file->mode = 0;
-        file->pos = 0;
-        file->ref = 1;
-        file->type = FILE_TTY;
-        kernel_strncpy(file->file_name, name, FILE_NAME_SIZE);
-        return fd;
-    sys_open_failed:
-        if (file) {
-            file_free(file);
-        }
-
-        if (fd >= 0) {
-            task_remove_fd(fd);
-        }
+    int fd = -1;
+    file_t* file = file_alloc();
+    if (!file) {
         return -1;
-
-    } else {
-        if (name[0] == '/') {
-            read_disk(5000, 80, (uint8_t*)TEMP_ADDR);
-            temp_pos = (uint8_t*)TEMP_ADDR;
-            return TEMP_FILE_ID;
+    }
+    fd = task_alloc_fd(file);
+    if (fd < 0) {
+        goto sys_open_failed;
+    }
+    fs_t* fs = (fs_t*)0;
+    list_node_t* node = list_first(&mounted_list);
+    while (node) {
+        fs_t* curr = list_node_parent(node, fs_t, node);
+        if (path_begin_with(name, curr->mount_point)) {
+            fs = curr;
+            break;
         }
+    }
+    if (fs) {
+        name = path_next_child(name);
+    } else {
+    }
+
+    file->mode = flags;
+    file->fs = fs;
+    kernel_strncpy(file->file_name, name, FILE_NAME_SIZE);
+    fs_protect(fs);
+    int err = fs->op->open(fs, name, file);
+    if (err < 0) {
+        fs_unprotect(fs);
+        log_printf("open %s failed.", name);
+        goto sys_open_failed;
+    }
+    fs_unprotect(fs);
+    return fd;
+sys_open_failed:
+    file_free(file);
+    if (fd >= 0) {
+        task_remove_fd(fd);
     }
     return -1;
 }
@@ -275,7 +326,7 @@ void fs_init(void) {
 
 int sys_dup(int file) {
     // 超出进程所能打开的全部，退出
-    if ((file < 0) && (file >= TASK_OFILE_NR)) {
+    if (is_fd_bad(file)) {
         log_printf("file(%d) is not valid.", file);
         return -1;
     }
@@ -288,7 +339,7 @@ int sys_dup(int file) {
 
     int fd = task_alloc_fd(p_file);  // 新fd指向同一描述符
     if (fd >= 0) {
-        p_file->ref++;  // 增加引用计数
+        file_inc_ref(p_file);  // 增加引用计数
         return fd;
     }
 

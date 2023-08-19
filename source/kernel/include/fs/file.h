@@ -1,3 +1,10 @@
+/*
+ * @Author: warrior
+ * @Date: 2023-08-16 14:37:08
+ * @LastEditors: warrior
+ * @LastEditTime: 2023-08-19 15:25:03
+ * @Description:
+ */
 #ifndef FILE_H
 #define FILE_H
 
@@ -25,8 +32,9 @@ typedef struct _file_t {
 
     int dev_id;  // 文件所属的设备号
 
-    int pos;   // 当前位置
-    int mode;  // 读写模式
+    int pos;           // 当前位置
+    int mode;          // 读写模式
+    struct _fs_t* fs;  // 所在的文件系统
 } file_t;
 
 /**

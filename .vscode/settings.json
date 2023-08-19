@@ -33,7 +33,8 @@
         "file.h": "c",
         "tty.h": "c",
         "main.h": "c",
-        "fs.h": "c"
+        "fs.h": "c",
+        "devfs.h": "c"
     },
     "fileheader.configObj": {
         "createFileTime": true,
