@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:42:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-19 16:06:51
+ * @LastEditTime: 2023-08-19 22:32:09
  * @Description:
  */
 #include "fs/fs.h"
@@ -15,6 +15,7 @@
 #include "fs/file.h"
 #include "tools/klib.h"
 #include "tools/log.h"
+#include "dev/disk.h"
 
 #define TEMP_FILE_ID 100
 #define TEMP_ADDR (8 * 1024 * 1024)  // 在0x800000处缓存原始
@@ -403,6 +404,7 @@ int sys_fstat(int file, struct stat* st) {
 void fs_init(void) {
     mount_list_init();
     file_table_init();
+    disk_init();
     fs_t* fs = mount(FS_DEVFS, "/dev", 0, 0);
     ASSERT(fs != (fs_t*)0);
 }

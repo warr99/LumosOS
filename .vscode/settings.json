@@ -34,7 +34,8 @@
         "tty.h": "c",
         "main.h": "c",
         "fs.h": "c",
-        "devfs.h": "c"
+        "devfs.h": "c",
+        "disk.h": "c"
     },
     "fileheader.configObj": {
         "createFileTime": true,
