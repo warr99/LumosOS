@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "lib_syscall.h"
+#include <sys/file.h>
 
 static cli_t cli;
 static const char* promot = "sh>>";
@@ -179,7 +180,7 @@ static void cli_init(const char* promot, int cnt) {
 }
 
 int main(int argc, char** argv) {
-    open(argv[0], 0);
+    open(argv[0], O_RDWR);
     dup(0);
     dup(0);
 

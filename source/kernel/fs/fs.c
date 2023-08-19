@@ -2,10 +2,11 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:42:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-19 15:37:06
+ * @LastEditTime: 2023-08-19 16:06:51
  * @Description:
  */
 #include "fs/fs.h"
+#include <sys/file.h>
 #include "comm/boot_info.h"
 #include "comm/cpu_instr.h"
 #include "core/task.h"
@@ -37,12 +38,12 @@ static int is_path_valid(const char* path) {
 /**
  * @brief 判断文件描述符是否正确
  */
-static int is_fd_bad (int file) {
-	if ((file < 0) && (file >= TASK_OFILE_NR)) {
-		return 1;
-	}
+static int is_fd_bad(int file) {
+    if ((file < 0) && (file >= TASK_OFILE_NR)) {
+        return 1;
+    }
 
-	return 0;
+    return 0;
 }
 
 /**
@@ -160,25 +161,25 @@ mount_failed:
     return (fs_t*)0;
 }
 
-int path_begin_with (const char * path, const char * str) {
-	const char * s1 = path, * s2 = str;
-	while (*s1 && *s2 && (*s1 == *s2)) {
-		s1++;
-		s2++;
-	}
-	return *s2 == '\0';
+int path_begin_with(const char* path, const char* str) {
+    const char *s1 = path, *s2 = str;
+    while (*s1 && *s2 && (*s1 == *s2)) {
+        s1++;
+        s2++;
+    }
+    return *s2 == '\0';
 }
 
-static void fs_protect (fs_t * fs) {
-	if (fs->mutex) {
-		mutex_lock(fs->mutex);
-	}
+static void fs_protect(fs_t* fs) {
+    if (fs->mutex) {
+        mutex_lock(fs->mutex);
+    }
 }
 
-static void fs_unprotect (fs_t * fs) {
-	if (fs->mutex) {
-		mutex_unlock(fs->mutex);
-	}
+static void fs_unprotect(fs_t* fs) {
+    if (fs->mutex) {
+        mutex_unlock(fs->mutex);
+    }
 }
 
 int path_to_num(const char* path, int* num) {
@@ -264,30 +265,49 @@ int sys_read(int file, char* ptr, int len) {
         kernel_memcpy(ptr, temp_pos, len);
         temp_pos += len;
         return len;
-    } else {
-        // file = 0;
-        file_t* p_file = task_file(file);
-        if (!p_file) {
-            log_printf("file not opened");
-            return -1;
-        }
-        return dev_read(p_file->dev_id, 0, ptr, len);
     }
-    return -1;
+
+    if (is_fd_bad(file) || !ptr || !len) {
+        return 0;
+    }
+    file_t* p_file = task_file(file);
+    if (!p_file) {
+        log_printf("file not opened");
+        return -1;
+    }
+    if (p_file->mode == O_WRONLY) {
+        log_printf("file is write only");
+        return -1;
+    }
+    fs_t* fs = p_file->fs;
+    fs_protect(fs);
+    int err = fs->op->read(ptr, len, p_file);
+    fs_unprotect(fs);
+    return err;
 }
 
 /**
  * 写文件
  */
 int sys_write(int file, char* ptr, int len) {
-    // file = 0;
+    if (is_fd_bad(file) || !ptr || !len) {
+        return 0;
+    }
     file_t* p_file = task_file(file);
     if (!p_file) {
         log_printf("file not opened");
         return -1;
     }
-
-    return dev_write(p_file->dev_id, 0, ptr, len);
+    if (p_file->mode == O_RDONLY) {
+        log_printf("file is write only");
+        return -1;
+    }
+    // 写入文件
+    fs_t* fs = p_file->fs;
+    fs_protect(fs);
+    int err = fs->op->write(ptr, len, p_file);
+    fs_unprotect(fs);
+    return err;
 }
 
 /**
@@ -297,24 +317,87 @@ int sys_lseek(int file, int ptr, int dir) {
     if (file == TEMP_FILE_ID) {
         temp_pos = (uint8_t*)(ptr + TEMP_ADDR);
         return 0;
-    } else if (file == 0) {
     }
 
-    return -1;
+    if (is_fd_bad(file)) {
+        return -1;
+    }
+
+    file_t* p_file = task_file(file);
+    if (!p_file) {
+        log_printf("file not opened");
+        return -1;
+    }
+
+    // 写入文件
+    fs_t* fs = p_file->fs;
+
+    fs_protect(fs);
+    int err = fs->op->seek(p_file, ptr, dir);
+    fs_unprotect(fs);
+    return err;
 }
 
 /**
  * 关闭文件
  */
 int sys_close(int file) {
+    if (file == TEMP_FILE_ID) {
+        return 0;
+    }
+    if (is_fd_bad(file)) {
+        log_printf("file error");
+        return -1;
+    }
+    file_t* p_file = task_file(file);
+    if (p_file == (file_t*)0) {
+        log_printf("file not opened. %d", file);
+        return -1;
+    }
+    ASSERT(p_file->ref > 0);
+    if (p_file->ref-- == 1) {
+        fs_t* fs = p_file->fs;
+
+        fs_protect(fs);
+        fs->op->close(p_file);
+        fs_unprotect(fs);
+        file_free(p_file);
+    }
+    task_remove_fd(file);
+    return 0;
 }
 
 int sys_isatty(int file) {
-    return -1;
+    if (is_fd_bad(file)) {
+        return 0;
+    }
+
+    file_t* pfile = task_file(file);
+    if (pfile == (file_t*)0) {
+        return 0;
+    }
+
+    return pfile->type == FILE_TTY;
 }
 
 int sys_fstat(int file, struct stat* st) {
-    return -1;
+    if (is_fd_bad(file)) {
+        return -1;
+    }
+
+    file_t* p_file = task_file(file);
+    if (p_file == (file_t*)0) {
+        return -1;
+    }
+
+    fs_t* fs = p_file->fs;
+
+    kernel_memset(st, 0, sizeof(struct stat));
+
+    fs_protect(fs);
+    int err = fs->op->stat(p_file, st);
+    fs_unprotect(fs);
+    return err;
 }
 
 void fs_init(void) {

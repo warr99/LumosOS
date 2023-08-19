@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:14:57
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-19 14:36:00
+ * @LastEditTime: 2023-08-19 16:11:36
  * @Description:
  */
 #ifndef FS_H
@@ -124,10 +124,19 @@ int sys_lseek(int file, int ptr, int dir);
  */
 int sys_close(int file);
 
+/**
+ * 判断文件描述符与tty关联
+ */
 int sys_isatty(int file);
 
+/**
+ * 查询文件的元数据
+*/
 int sys_fstat(int file, struct stat* st);
 
+/**
+ * 复制一个文件描述符
+*/
 int sys_dup(int file);
 
 #endif
