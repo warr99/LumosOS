@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:14:57
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-17 11:27:35
+ * @LastEditTime: 2023-08-19 10:02:50
  * @Description:
  */
 #ifndef FS_H
@@ -10,6 +10,26 @@
 
 #include <sys/stat.h>
 #include "fs/file.h"
+
+struct _fs_t;
+
+/**
+ * @brief 文件系统操作接口
+ */
+typedef struct _fs_op_t {
+    int (*mount)(struct _fs_t* fs, int major, int minor);           // 挂载
+    void (*unmount)(struct _fs_t* fs);                              // 取消挂载
+    int (*open)(struct _fs_t* fs, const char* path, file_t* file);  // 打开文件
+    int (*read)(char* buf, int size, file_t* file);                 // 读取文件
+    int (*write)(char* buf, int size, file_t* file);                // 写文件
+    void (*close)(file_t* file);                                    // 关闭文件
+    int (*seek)(file_t* file, uint32_t offset, int dir);            // 移动文件指针到文件中的特定位置
+    int (*stat)(file_t* file, struct stat* st);                     // 获取文件或文件系统对象的元数据信息
+} fs_op_t;
+
+typedef struct _fs_t {
+    fs_op_t* op;  // 文件系统操作接口
+} fs_t;
 
 /**
  * @brief 文件系统初始化

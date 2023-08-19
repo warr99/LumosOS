@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-25 10:10:58
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-17 16:40:20
+ * @LastEditTime: 2023-08-19 09:55:28
  * @Description:
  */
 #include "applib/lib_syscall.h"
@@ -38,7 +38,7 @@ int first_task_main(void) {
     }
     pid = getpid();
 #endif
-    for (int i = 0; i < TTY_NR; i++) {
+    for (int i = 0; i < 1; i++) {
         int pid = fork();
         if (pid < 0) {
             print_msg("create shell proc failed", 0);
