@@ -2,12 +2,14 @@
  * @Author: warrior
  * @Date: 2023-08-19 22:27:07
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-22 13:23:37
+ * @LastEditTime: 2023-08-22 15:18:06
  * @Description:
  */
 #include "dev/disk.h"
 #include "comm/boot_info.h"
 #include "comm/cpu_instr.h"
+#include "cpu/irq.h"
+#include "dev/dev.h"
 #include "tools/klib.h"
 #include "tools/log.h"
 
@@ -177,3 +179,66 @@ void disk_init(void) {
         }
     }
 }
+
+int disk_open(device_t* dev) {
+    // 0xa0
+    //  - a | b | c -> 磁盘编号
+    //  - 0 | 1 | 2 -> 分区号
+    int disk_idx = (dev->minor >> 4) - 0xa;  // 得到磁盘编号
+    int part_idx = dev->minor & 0xF;         // 得到分区号
+    if ((disk_idx >= DISK_CNT) || (part_idx >= DISK_PRIMARY_PART_CNT)) {
+        log_printf("device minor error: %d", dev->minor);
+        return -1;
+    }
+    // 取出磁盘
+    disk_t* disk = disk_buf + disk_idx;
+    if (disk->sector_size == 0) {
+        log_printf("disk not exist. device:sd%x", dev->minor);
+        return -1;
+    }
+    // 取出分区
+    partinfo_t* part_info = disk->partinfo + part_idx;
+    if (part_info->total_sector == 0) {
+        log_printf("part not exist. device:sd%x", dev->minor);
+        return -1;
+    }
+    dev->data = part_info;
+    irq_install(IRQ14_HARDDISK_PRIMARY, (irq_handler_t)exception_handler_ide_primary);
+    irq_enable(IRQ14_HARDDISK_PRIMARY);
+    return 0;
+}
+
+/**
+ * @brief 读磁盘
+ */
+int disk_read(device_t* dev, int start_sector, char* buf, int count) {
+    return 0;
+}
+
+int disk_write(device_t* dev, int start_sector, char* buf, int count) {
+    return 0;
+}
+
+int disk_control(device_t* dev, int cmd, int arg0, int arg1) {
+    return 0;
+}
+
+void disk_close(device_t* dev) {
+}
+
+void do_handler_ide_primary(exception_frame_t* frame) {
+    pic_send_eoi(IRQ14_HARDDISK_PRIMARY);
+}
+
+/**
+ * @brief disk设备的描述符结构。
+ */
+dev_desc_t dev_disk_desc = {
+    .name = "disk",
+    .major = DEV_DISK,
+    .open = disk_open,
+    .read = disk_read,
+    .write = disk_write,
+    .control = disk_control,
+    .close = disk_close,
+};

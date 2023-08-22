@@ -103,4 +103,5 @@ typedef struct _mbr_t {
  */
 void disk_init(void);
 
+void exception_handler_ide_primary(void);
 #endif

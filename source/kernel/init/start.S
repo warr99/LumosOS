@@ -90,6 +90,7 @@ exception_handler virtual_exception, 20, 0
 
 exception_handler timer, 0x20, 0
 exception_handler kbd, 0x21, 0
+exception_handler ide_primary, 0x2E, 0
 
 
     .text

@@ -6,6 +6,7 @@
 enum {
     DEV_UNKNOWN = 0,  // 未知类型
     DEV_TTY = 1,
+    DEV_DISK,
 };
 
 typedef struct _device_t {
