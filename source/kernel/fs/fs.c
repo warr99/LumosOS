@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:42:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-19 22:32:09
+ * @LastEditTime: 2023-08-22 17:20:04
  * @Description:
  */
 #include "fs/fs.h"
@@ -12,10 +12,10 @@
 #include "core/task.h"
 #include "dev/console.h"
 #include "dev/dev.h"
+#include "dev/disk.h"
 #include "fs/file.h"
 #include "tools/klib.h"
 #include "tools/log.h"
-#include "dev/disk.h"
 
 #define TEMP_FILE_ID 100
 #define TEMP_ADDR (8 * 1024 * 1024)  // 在0x800000处缓存原始
@@ -210,7 +210,9 @@ const char* path_next_child(const char* path) {
  */
 int sys_open(const char* name, int flags, ...) {
     if (kernel_strncmp(name, "/shell.elf", 3) == 0) {
-        read_disk(5000, 80, (uint8_t*)TEMP_ADDR);
+        int dev_id = dev_open(DEV_DISK, 0xa0, (void*)0);
+        dev_read(dev_id, 5000, (uint8_t*)TEMP_ADDR, 80);
+        // read_disk(5000, 80, (uint8_t*)TEMP_ADDR);
         temp_pos = (uint8_t*)TEMP_ADDR;
         return TEMP_FILE_ID;
     }

@@ -9,6 +9,8 @@
 #define DISK_H
 
 #include "comm/types.h"
+#include "ipc/mutex.h"
+#include "ipc/sem.h"
 
 #define DISK_NAME_SIZE 32              // 磁盘名称大小
 #define PART_NAME_SIZE 32              // 分区名称大小
@@ -70,6 +72,8 @@ typedef struct _disk_t {
         DISK_SLAVE = (1 << 4),   // 从设备
     } drive;                     // 磁盘的类型
     uint16_t port_base;          // 端口起始地址
+    mutex_t* mutex;
+    sem_t* op_sem;
 } disk_t;
 
 #pragma pack(1)
