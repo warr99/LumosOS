@@ -1,5 +1,5 @@
 # LumosOS
-**LumosOS 是一个基于 x86 架构的操作系统内核。持续开发中……**
+**LumosOS 是一个基于 x86 架构的操作系统内核。持续开发中……**  
 **LumosOS is an operating system kernel based on the x86 architecture. Under continuous development...**
 ## 开发日志
 * 引导程序
