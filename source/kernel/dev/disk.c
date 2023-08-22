@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-19 22:27:07
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-22 17:03:41
+ * @LastEditTime: 2023-08-22 20:28:57
  * @Description:
  */
 #include "dev/disk.h"
@@ -96,7 +96,7 @@ static void print_disk_info(disk_t* disk) {
     }
 }
 
-/**
+/**  
  * 获取指定序号的分区信息
  * 注意，该操作依赖物理分区分配，如果设备的分区结构有变化，则序号也会改变，得到的结果不同
  */
