@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-11 21:07:04
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-14 14:37:26
+ * @LastEditTime: 2023-08-22 11:30:04
  * @Description: 汇编指令封装
  */
 #ifndef CPU_INSTR_H
@@ -24,6 +24,12 @@ static inline uint16_t inw(uint16_t port) {
                          : [v] "=a"(rv)
                          : [p] "d"(port));
     return rv;
+}
+
+static inline void outw(uint16_t port, uint16_t data) {
+    __asm__ __volatile__("out %[v], %[p]"
+                         :
+                         : [p] "d"(port), [v] "a"(data));
 }
 
 static inline void outb(uint16_t port, uint8_t data) {

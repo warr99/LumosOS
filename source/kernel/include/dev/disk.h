@@ -7,6 +7,31 @@
 #define PART_NAME_SIZE 32              // 分区名称大小
 #define DISK_CNT 2                     // 磁盘的数量
 #define DISK_PRIMARY_PART_CNT (4 + 1)  // 主分区数量+拓展分区数量
+#define DISK_PER_CHANNEL 2             // 每通道磁盘数量
+
+#define IOBASE_PRIMARY 0x1F0                           // 主总线的基地址
+#define DISK_DATA(disk) (disk->port_base + 0)          // 数据寄存器
+#define DISK_ERROR(disk) (disk->port_base + 1)         // 错误寄存器
+#define DISK_SECTOR_COUNT(disk) (disk->port_base + 2)  // 扇区数量寄存器
+#define DISK_LBA_LO(disk) (disk->port_base + 3)        // LBA寄存器
+#define DISK_LBA_MID(disk) (disk->port_base + 4)       // LBA寄存器
+#define DISK_LBA_HI(disk) (disk->port_base + 5)        // LBA寄存器
+#define DISK_DRIVE(disk) (disk->port_base + 6)         // 磁盘或磁头 Drive
+#define DISK_STATUS(disk) (disk->port_base + 7)        // 状态寄存器
+#define DISK_CMD(disk) (disk->port_base + 7)           // 命令寄存器
+
+// ATA命令
+#define DISK_CMD_IDENTIFY 0xEC  // IDENTIFY命令
+#define DISK_CMD_READ 0x24      // 读命令
+#define DISK_CMD_WRITE 0x34     // 写命令
+
+// 状态寄存器
+#define DISK_STATUS_ERR (1 << 0)   // 发生了错误
+#define DISK_STATUS_DRQ (1 << 3)   // 准备好接受数据或者输出数据
+#define DISK_STATUS_DF (1 << 5)    // 驱动错误
+#define DISK_STATUS_BUSY (1 << 7)  // 正忙
+
+#define	DISK_DRIVE_BASE		    0xE0		// 驱动器号基础值:0xA0 + LBA
 
 /**
  * @brief 分区结构
@@ -31,11 +56,16 @@ typedef struct _disk_t {
     int sector_size;                             // 扇区大小
     int sector_count;                            // 扇区数量
     partinfo_t partinfo[DISK_PRIMARY_PART_CNT];  // 磁盘分区表(主分区+拓展分区)
+    enum {
+        DISK_MASTER = (0 << 4),  // 主设备
+        DISK_SLAVE = (1 << 4),   // 从设备
+    } drive;                     // 磁盘的类型
+    uint16_t port_base;          // 端口起始地址
 } disk_t;
 
 /**
  * @brief 磁盘初始化
  */
-void disk_init (void);
+void disk_init(void);
 
 #endif
