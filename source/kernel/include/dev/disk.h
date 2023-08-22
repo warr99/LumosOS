@@ -1,3 +1,10 @@
+/*
+ * @Author: warrior
+ * @Date: 2023-08-19 22:13:16
+ * @LastEditors: warrior
+ * @LastEditTime: 2023-08-22 13:27:58
+ * @Description:
+ */
 #ifndef DISK_H
 #define DISK_H
 
@@ -31,7 +38,9 @@
 #define DISK_STATUS_DF (1 << 5)    // 驱动错误
 #define DISK_STATUS_BUSY (1 << 7)  // 正忙
 
-#define	DISK_DRIVE_BASE		    0xE0		// 驱动器号基础值:0xA0 + LBA
+#define DISK_DRIVE_BASE 0xE0  // 驱动器号基础值:0xA0 + LBA
+
+#define MBR_PRIMARY_PART_NR 4  // 4个分区表
 
 /**
  * @brief 分区结构
@@ -63,6 +72,32 @@ typedef struct _disk_t {
     uint16_t port_base;          // 端口起始地址
 } disk_t;
 
+#pragma pack(1)
+/**
+ * MBR的分区表项类型
+ */
+typedef struct _part_item_t {
+    uint8_t boot_active;           // 分区是否活动
+    uint8_t start_header;          // 起始header
+    uint16_t start_sector : 6;     // 起始扇区
+    uint16_t start_cylinder : 10;  // 起始磁道
+    uint8_t system_id;             // 文件系统类型
+    uint8_t end_header;            // 结束header
+    uint16_t end_sector : 6;       // 结束扇区
+    uint16_t end_cylinder : 10;    // 结束磁道
+    uint32_t relative_sectors;     // 相对于该驱动器开始的相对扇区数
+    uint32_t total_sectors;        // 总的扇区数
+} part_item_t;
+
+/**
+ * MBR区域描述结构
+ */
+typedef struct _mbr_t {
+    uint8_t code[446];  // 引导代码区
+    part_item_t part_item[MBR_PRIMARY_PART_NR];
+    uint8_t boot_sig[2];  // 引导标志
+} mbr_t;
+#pragma pack()
 /**
  * @brief 磁盘初始化
  */
