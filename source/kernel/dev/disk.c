@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-19 22:27:07
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-22 20:28:57
+ * @LastEditTime: 2023-08-23 00:26:16
  * @Description:
  */
 #include "dev/disk.h"
@@ -96,7 +96,7 @@ static void print_disk_info(disk_t* disk) {
     }
 }
 
-/**  
+/**
  * 获取指定序号的分区信息
  * 注意，该操作依赖物理分区分配，如果设备的分区结构有变化，则序号也会改变，得到的结果不同
  */
@@ -236,7 +236,9 @@ int disk_read(device_t* dev, int start_sector, char* buf, int count) {
     ata_send_cmd(disk, part_info->start_sector + start_sector, count, DISK_CMD_READ);
     int read_cnt;
     for (read_cnt = 0; read_cnt < count; read_cnt++, buf += disk->sector_size) {
-        sem_wait(disk->op_sem);
+        if (task_current()) {
+            sem_wait(disk->op_sem);
+        }
         int err = ata_wait_data(disk);
         if (err < 0) {
             log_printf("disk(%s) read error: start sect %d, count %d", disk->name, start_sector, count);
@@ -267,6 +269,9 @@ int disk_write(device_t* dev, int start_sector, char* buf, int count) {
     for (cnt = 0; cnt < count; cnt++, buf += disk->sector_size) {
         // 先写数据
         ata_write_data(disk, buf, disk->sector_size);
+        if (task_current()) {
+            sem_wait(disk->op_sem);
+        }
 
         // 利用信号量等待中断通知，等待写完成
         sem_wait(disk->op_sem);
@@ -292,7 +297,7 @@ void disk_close(device_t* dev) {
 
 void do_handler_ide_primary(exception_frame_t* frame) {
     pic_send_eoi(IRQ14_HARDDISK_PRIMARY);
-    if (task_on_op) {
+    if (task_on_op && task_current()) {
         sem_notify(&op_sem);
     }
 }

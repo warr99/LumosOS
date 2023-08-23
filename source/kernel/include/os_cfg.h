@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-13 15:49:49
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-16 17:25:31
+ * @LastEditTime: 2023-08-22 23:17:56
  * @Description:
  */
 #ifndef OS_CFG_H
@@ -19,5 +19,7 @@
 #define OS_VERSION "1.0.0"
 
 #define TASK_NR 128
+
+#define ROOT_DEV DEV_DISK, 0xb1  // 根目录所在的设备
 
 #endif

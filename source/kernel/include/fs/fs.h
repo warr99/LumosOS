@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:14:57
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-19 16:11:36
+ * @LastEditTime: 2023-08-22 23:56:49
  * @Description:
  */
 #ifndef FS_H
@@ -10,6 +10,7 @@
 
 #include <sys/stat.h>
 #include "fs/file.h"
+#include "fs/fatfs/fatfs.h"
 #include "ipc/mutex.h"
 #include "tools/list.h"
 
@@ -33,6 +34,7 @@ typedef struct _fs_op_t {
 
 typedef enum _fs_type_t {
     FS_DEVFS,
+    FS_FAT16,
 } fs_type_t;
 
 typedef struct _fs_t {
@@ -43,6 +45,9 @@ typedef struct _fs_t {
     int dev_id;                        // 设备id
     list_node_t node;                  // 链表节点
     mutex_t* mutex;                    // 互斥锁
+    union {
+        fat_t fat_data;  // 文件系统相关数据
+    };
 } fs_t;
 
 /**
@@ -66,10 +71,10 @@ const char* path_next_child(const char* path);
  */
 int path_begin_with(const char* path, const char* str);
 
-    /**
-     * @brief 文件系统初始化
-     */
-    void fs_init(void);
+/**
+ * @brief 文件系统初始化
+ */
+void fs_init(void);
 
 /**
  * 打开一个文件或者创建一个文件描述符。
@@ -131,12 +136,12 @@ int sys_isatty(int file);
 
 /**
  * 查询文件的元数据
-*/
+ */
 int sys_fstat(int file, struct stat* st);
 
 /**
  * 复制一个文件描述符
-*/
+ */
 int sys_dup(int file);
 
 #endif

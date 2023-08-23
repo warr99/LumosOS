@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:42:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-22 17:20:04
+ * @LastEditTime: 2023-08-22 23:29:40
  * @Description:
  */
 #include "fs/fs.h"
@@ -14,6 +14,7 @@
 #include "dev/dev.h"
 #include "dev/disk.h"
 #include "fs/file.h"
+#include "os_cfg.h"
 #include "tools/klib.h"
 #include "tools/log.h"
 
@@ -25,7 +26,8 @@ static list_t mounted_list;          // 已挂载的文件系统
 static list_t free_list;             // 空闲fs列表
 static fs_t fs_tbl[FS_TABLE_SIZE];   // 空闲文件系统表
 extern fs_op_t devfs_op;             // 设备文件系统操作接口
-
+extern fs_op_t fatfs_op;             // FAT文件系统操作接口
+static fs_t* root_fs;                // 根文件系统
 /**
  * @brief 检查路径是否正常
  */
@@ -95,6 +97,8 @@ static void mount_list_init(void) {
  */
 static fs_op_t* get_fs_op(fs_type_t type, int major) {
     switch (type) {
+        case FS_FAT16:
+            return &fatfs_op;
         case FS_DEVFS:
             return &devfs_op;
         default:
@@ -238,6 +242,7 @@ int sys_open(const char* name, int flags, ...) {
     if (fs) {
         name = path_next_child(name);
     } else {
+        fs = root_fs;
     }
 
     file->mode = flags;
@@ -409,6 +414,8 @@ void fs_init(void) {
     disk_init();
     fs_t* fs = mount(FS_DEVFS, "/dev", 0, 0);
     ASSERT(fs != (fs_t*)0);
+    root_fs = mount(FS_FAT16, "/home", ROOT_DEV);
+    ASSERT(root_fs != (fs_t*)0);
 }
 
 int sys_dup(int file) {
