@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:42:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-22 23:29:40
+ * @LastEditTime: 2023-08-23 17:37:43
  * @Description:
  */
 #include "fs/fs.h"
@@ -439,4 +439,25 @@ int sys_dup(int file) {
 
     log_printf("No task file avaliable");
     return -1;
+}
+
+int sys_opendir(const char* name, DIR* dir) {
+    fs_protect(root_fs);
+    int err = root_fs->op->opendir(root_fs, name, dir);
+    fs_unprotect(root_fs);
+    return err;
+}
+
+int sys_readdir(DIR* dir, struct dirent* dirent) {
+    fs_protect(root_fs);
+    int err = root_fs->op->readdir(root_fs, dir, dirent);
+    fs_unprotect(root_fs);
+    return err;
+}
+
+int sys_closedir(DIR* dir) {
+    fs_protect(root_fs);
+    int err = root_fs->op->closedir(root_fs, dir);
+    fs_unprotect(root_fs);
+    return err;
 }

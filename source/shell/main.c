@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 13:56:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-18 15:07:57
+ * @LastEditTime: 2023-08-23 17:06:21
  * @Description:
  */
 #include "main.h"
@@ -10,8 +10,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "lib_syscall.h"
 #include <sys/file.h>
+#include "fs/file.h"
+#include "lib_syscall.h"
 
 static cli_t cli;
 static const char* promot = "sh>>";
@@ -86,6 +87,25 @@ static int do_exit(int argc, char** argv) {
     return 0;
 }
 
+static int do_ls(int argc, char** argv) {
+    // 打开目录
+    DIR* p_dir = opendir("temp");
+    if (p_dir == NULL) {
+        printf("open dir failed\n");
+        return -1;
+    }
+    struct dirent* entry;
+    while ((entry = readdir(p_dir)) != NULL) {
+        strlwr(entry->name);
+        printf("%c %s %d\n",
+               entry->type == FILE_DIR ? 'd' : 'f',
+               entry->name,
+               entry->size);
+    }
+    closedir(p_dir);
+
+    return 0;
+}
 // 命令列表
 static const cli_cmd_t cmd_list[] = {
     {
@@ -107,6 +127,11 @@ static const cli_cmd_t cmd_list[] = {
         .name = "quit",
         .usage = "quit -- quit from shell",
         .do_func = do_exit,
+    },
+    {
+        .name = "ls",
+        .usage = "ls -- list director",
+        .do_func = do_ls,
     },
 };
 

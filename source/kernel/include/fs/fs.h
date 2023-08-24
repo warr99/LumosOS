@@ -2,15 +2,16 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:14:57
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-22 23:56:49
+ * @LastEditTime: 2023-08-23 13:15:57
  * @Description:
  */
 #ifndef FS_H
 #define FS_H
 
 #include <sys/stat.h>
-#include "fs/file.h"
+#include "applib/lib_syscall.h"
 #include "fs/fatfs/fatfs.h"
+#include "fs/file.h"
 #include "ipc/mutex.h"
 #include "tools/list.h"
 
@@ -30,6 +31,10 @@ typedef struct _fs_op_t {
     void (*close)(file_t* file);                                    // 关闭文件
     int (*seek)(file_t* file, uint32_t offset, int dir);            // 移动文件指针到文件中的特定位置
     int (*stat)(file_t* file, struct stat* st);                     // 获取文件或文件系统对象的元数据信息
+
+    int (*opendir)(struct _fs_t* fs, const char* name, DIR* dir);
+    int (*readdir)(struct _fs_t* fs, DIR* dir, struct dirent* dirent);
+    int (*closedir)(struct _fs_t* fs, DIR* dir);
 } fs_op_t;
 
 typedef enum _fs_type_t {
@@ -143,5 +148,11 @@ int sys_fstat(int file, struct stat* st);
  * 复制一个文件描述符
  */
 int sys_dup(int file);
+
+int sys_opendir(const char* name, DIR* dir);
+
+int sys_readdir(DIR* dir, struct dirent* dirent);
+
+int sys_closedir(DIR* dir);
 
 #endif

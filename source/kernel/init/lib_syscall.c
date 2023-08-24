@@ -2,11 +2,12 @@
  * @Author: warrior
  * @Date: 2023-08-11 14:36:10
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-23 13:02:48
+ * @LastEditTime: 2023-08-23 13:00:51
  * @Description:
  */
-#include "lib_syscall.h"
+#include "applib/lib_syscall.h"
 #include <stdlib.h>
+#include <string.h>
 
 static int sys_call(syscall_args_t* args) {
     uint32_t addr[] = {0, SELECTOR_SYSCALL | 0};
@@ -16,7 +17,7 @@ static int sys_call(syscall_args_t* args) {
         "push %[arg2]\n\t"
         "push %[arg1]\n\t"
         "push %[arg0]\n\t"
-        "push %[id]\n\t" 
+        "push %[id]\n\t"
         "lcalll *(%[a])"
         : "=a"(ret)
         : [arg3] "r"(args->arg3),
@@ -173,42 +174,4 @@ int wait(int* status) {
     args.id = SYS_wait;
     args.arg0 = (int)status;
     sys_call(&args);
-}
-
-DIR* opendir(const char* path) {
-    DIR* dir = (DIR*)malloc(sizeof(DIR));
-    if (dir == (DIR*)0) {
-        return (DIR*)0;
-    }
-    syscall_args_t args;
-    args.id = SYS_opendir;
-    args.arg0 = (int)path;
-    args.arg1 = (int)dir;
-    int err = sys_call(&args);
-    if (err < 0) {
-        free(dir);
-        return (DIR*)0;
-    }
-    return dir;
-}
-
-struct dirent* readdir(DIR* dir) {
-    syscall_args_t args;
-    args.id = SYS_readdir;
-    args.arg0 = (int)dir;
-    args.arg1 = (int)&dir->dirent;
-    int err = sys_call(&args);
-    if (err < 0) {
-        return (struct dirent *)0;
-    }
-    return &dir->dirent;
-}
-
-int closedir(DIR *dir) {
-    syscall_args_t args;
-    args.id = SYS_closedir;
-    args.arg0 = (int)dir;
-    sys_call(&args);
-    free(dir);
-    return 0;
 }

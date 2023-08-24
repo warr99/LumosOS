@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-31 21:43:32
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-11 14:38:08
+ * @LastEditTime: 2023-08-24 21:37:48
  * @Description:
  */
 #ifndef LIB_SYSCALL_H
@@ -64,5 +64,23 @@ int dup(int file);
 void _exit(int status);
 
 int wait(int* status);
+
+struct dirent {
+    int index;
+    int type;
+    char name[256];
+    int size;
+};
+
+typedef struct _DIR {
+    int index;
+    struct dirent dirent;
+} DIR;
+
+DIR* opendir(const char* path);
+
+struct dirent* readdir(DIR* dir);
+
+int closedir(DIR* dir);
 
 #endif

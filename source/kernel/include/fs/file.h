@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-16 14:37:08
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-19 15:25:03
+ * @LastEditTime: 2023-08-23 13:10:37
  * @Description:
  */
 #ifndef FILE_H
@@ -19,6 +19,8 @@
 typedef enum _file_type_t {
     FILE_UNKNOWN = 0,
     FILE_TTY = 1,
+    FILE_NORMAL,
+    FILE_DIR,
 } file_type_t;
 
 /**
