@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:42:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-23 17:37:43
+ * @LastEditTime: 2023-08-25 23:42:49
  * @Description:
  */
 #include "fs/fs.h"
@@ -238,6 +238,7 @@ int sys_open(const char* name, int flags, ...) {
             fs = curr;
             break;
         }
+        node = list_node_next(node);
     }
     if (fs) {
         name = path_next_child(name);
