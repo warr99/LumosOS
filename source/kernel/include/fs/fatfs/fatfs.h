@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-22 22:40:02
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-23 15:22:26
+ * @LastEditTime: 2023-08-26 10:45:41
  * @Description:
  */
 #ifndef FATFS_H
@@ -11,6 +11,8 @@
 #include "comm/types.h"
 
 #pragma pack(1)
+
+#define FAT_CLUSTER_INVALID 0xFFF8  // 无效的簇号
 
 #define DIRITEM_NAME_FREE 0xE5  // 目录项空闲名标记
 #define DIRITEM_NAME_END 0x00   // 目录项结束名标记
@@ -91,5 +93,7 @@ typedef struct _fat_t {
 
     struct _fs_t* fs;  // 所在的文件系统
 } fat_t;
+
+typedef uint16_t cluster_t;
 
 #endif

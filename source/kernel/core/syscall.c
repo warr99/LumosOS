@@ -33,6 +33,7 @@ static const syscall_handler_t sys_table[] = {
     [SYS_dup] = (syscall_handler_t)sys_dup,
     [SYS_exit] = (syscall_handler_t)sys_exit,
     [SYS_wait] = (syscall_handler_t)sys_wait,
+    [SYS_ioctl] = (syscall_handler_t)sys_ioctl,
 
     [SYS_opendir] = (syscall_handler_t)sys_opendir,
     [SYS_readdir] = (syscall_handler_t)sys_readdir,

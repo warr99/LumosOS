@@ -48,6 +48,56 @@ static void to_sfn(char* dest, const char* src) {
 }
 
 /**
+ * 检查指定簇是否可用，非占用或坏簇
+ */
+int cluster_is_valid(cluster_t cluster) {
+    return (cluster < FAT_CLUSTER_INVALID) && (cluster >= 0x2);  // 值是否正确
+}
+
+/**
+ * 获取指定簇的下一个簇
+ */
+int cluster_get_next(fat_t* fat, cluster_t curr) {
+    if (!cluster_is_valid(curr)) {
+        return FAT_CLUSTER_INVALID;
+    }
+    // 簇号在FAT表中的字节偏移
+    int offset = curr * sizeof(cluster_t);
+    // 簇号在FAT表中的扇区号
+    int sector = offset / fat->bytes_per_sec;
+    // 在扇区的偏移量
+    int off_sector = offset % fat->bytes_per_sec;
+    if (sector >= fat->tbl_sectors) {
+        log_printf("cluster too big. %d", curr);
+        return FAT_CLUSTER_INVALID;
+    }
+    int err = bread_sector(fat, fat->tbl_start + sector);
+    if (err < 0) {
+        return FAT_CLUSTER_INVALID;
+    }
+    return *(cluster_t*)(fat->fat_buffer + off_sector);
+}
+
+/**
+ * @brief 移动文件指针
+ */
+static int move_file_pos(file_t* file, fat_t* fat, uint32_t move_bytes, int expand) {
+    // 簇内偏移
+    uint32_t c_offset = file->pos % fat->cluster_byte_size;
+
+    // 跨簇，则调整curr_cluster
+    if (c_offset + move_bytes >= fat->cluster_byte_size) {
+        cluster_t next = cluster_get_next(fat, file->cblk);
+        if (next == FAT_CLUSTER_INVALID) {
+            return -1;
+        }
+        file->cblk = next;
+    }
+    file->pos += move_bytes;
+    return 0;
+}
+
+/**
  * @brief 名称匹配
  */
 int diritem_name_match(diritem_t* item, const char* path) {
@@ -202,7 +252,7 @@ int fatfs_open(struct _fs_t* fs, const char* path, file_t* file) {
     }
     if (file_item) {
         read_from_diritem(fat, file, file_item, p_index);
-          return 0;
+        return 0;
     }
 
     return -1;
@@ -212,7 +262,52 @@ int fatfs_open(struct _fs_t* fs, const char* path, file_t* file) {
  * @brief 读文件
  */
 int fatfs_read(char* buf, int size, file_t* file) {
-    return 0;
+    fat_t* fat = (fat_t*)file->fs->data;
+    uint32_t nbytes = size;
+    if (file->pos + nbytes > file->size) {
+        nbytes = file->size - file->pos;
+    }
+    // 实际读取数量
+    uint32_t total_read = 0;
+    while (nbytes > 0) {
+        // 当前应该读取的数据量
+        uint32_t curr_read = nbytes;
+        // 簇内偏移量
+        uint32_t cluster_offset = file->pos % fat->cluster_byte_size;
+        // 起始扇区号
+        uint32_t start_sector = fat->data_start + (file->cblk - 2) * fat->sec_per_cluster;
+        if ((cluster_offset == 0) && (nbytes == fat->cluster_byte_size)) {
+            int err = dev_read(fat->fs->dev_id, start_sector, buf, fat->sec_per_cluster);
+            if (err < 0) {
+                return total_read;
+            }
+            curr_read = fat->cluster_byte_size;
+        } else {
+            // 簇内偏移量 + 当前要读取的数据量 > 每簇字节数 -> 要读取的数据超过簇边界
+            if (cluster_offset + curr_read > fat->cluster_byte_size) {
+                // 先读取当前簇的数据
+                curr_read = fat->cluster_byte_size - cluster_offset;
+            }
+            // 读取一整个簇
+            fat->curr_sector = start_sector;
+            int err = dev_read(fat->fs->dev_id, start_sector, fat->fat_buffer, fat->sec_per_cluster);
+            if (err < 0) {
+                return total_read;
+            }
+            // 将真正要读取的部分拷贝到用户数据缓冲区
+            kernel_memcpy(buf, fat->fat_buffer + cluster_offset, curr_read);
+        }
+        buf += curr_read;
+        nbytes -= curr_read;
+        total_read += curr_read;
+        // 前移文件指针
+        int err = move_file_pos(file, fat, curr_read, 0);
+        if (err < 0) {
+            return total_read;
+        }
+    }
+
+    return total_read;
 }
 
 /**

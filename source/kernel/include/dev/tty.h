@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-15 10:31:50
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-17 14:12:54
+ * @LastEditTime: 2023-08-26 13:46:20
  * @Description:
  */
 #ifndef TTY_H
@@ -13,6 +13,7 @@
 #define TTY_NR 8           // 最大支持的tty设备数量
 #define TTY_IBUF_SIZE 512  // tty输入缓存大小
 #define TTY_OBUF_SIZE 512  // tty输出缓存大小
+#define TTY_CMD_ECHO 0x1   // 开回显
 
 #define TTY_OCRLF (1 << 0)
 #define TTY_INCLR (1 << 0)

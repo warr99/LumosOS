@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:42:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-25 23:42:49
+ * @LastEditTime: 2023-08-26 12:01:07
  * @Description:
  */
 #include "fs/fs.h"
@@ -343,6 +343,26 @@ int sys_lseek(int file, int ptr, int dir) {
 
     fs_protect(fs);
     int err = fs->op->seek(p_file, ptr, dir);
+    fs_unprotect(fs);
+    return err;
+}
+
+int sys_ioctl(int fd, int cmd, int arg0, int arg1) {
+    if (is_fd_bad(fd)) {
+        return 0;
+    }
+
+    file_t* pfile = task_file(fd);
+    if (pfile == (file_t*)0) {
+        return 0;
+    }
+
+    fs_t* fs = pfile->fs;
+    int err;
+    fs_protect(fs);
+    if (fs->op->ioctl) {
+        err = fs->op->ioctl(pfile, cmd, arg0, arg1);
+    }
     fs_unprotect(fs);
     return err;
 }

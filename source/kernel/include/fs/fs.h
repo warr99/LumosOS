@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:14:57
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-23 13:15:57
+ * @LastEditTime: 2023-08-26 13:49:30
  * @Description:
  */
 #ifndef FS_H
@@ -31,6 +31,7 @@ typedef struct _fs_op_t {
     void (*close)(file_t* file);                                    // 关闭文件
     int (*seek)(file_t* file, uint32_t offset, int dir);            // 移动文件指针到文件中的特定位置
     int (*stat)(file_t* file, struct stat* st);                     // 获取文件或文件系统对象的元数据信息
+    int (*ioctl)(file_t* file, int cmd, int arg0, int arg1);
 
     int (*opendir)(struct _fs_t* fs, const char* name, DIR* dir);
     int (*readdir)(struct _fs_t* fs, DIR* dir, struct dirent* dirent);
@@ -154,5 +155,7 @@ int sys_opendir(const char* name, DIR* dir);
 int sys_readdir(DIR* dir, struct dirent* dirent);
 
 int sys_closedir(DIR* dir);
+
+int sys_ioctl(int fd, int cmd, int arg0, int arg1);
 
 #endif

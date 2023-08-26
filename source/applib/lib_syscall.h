@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-31 21:43:32
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-24 21:37:48
+ * @LastEditTime: 2023-08-26 13:59:55
  * @Description:
  */
 #ifndef LIB_SYSCALL_H
@@ -52,6 +52,8 @@ int write(int file, char* ptr, int len);
 int close(int file);
 
 int lseek(int file, int ptr, int dir);
+
+int ioctl(int fd, int cmd, int arg0, int arg1);
 
 int isatty(int file);
 

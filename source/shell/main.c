@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 13:56:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-25 23:37:14
+ * @LastEditTime: 2023-08-26 14:05:14
  * @Description:
  */
 #include "main.h"
@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/file.h>
+#include "dev/tty.h"
 #include "fs/file.h"
 #include "lib_syscall.h"
 
@@ -112,12 +113,16 @@ static int do_ls(int argc, char** argv) {
  */
 static int do_less(int argc, char** argv) {
     int ch;
+    int line_mode = 0;
     while ((ch = getopt(argc, argv, "lh")) != -1) {
         switch (ch) {
             case 'h':
                 puts("show file content");
                 puts("less [-l] file");
                 puts("-l show file line by line.");
+                break;
+            case 'l':
+                line_mode = 1;
                 break;
             case '?':
                 if (optarg) {
@@ -144,8 +149,31 @@ static int do_less(int argc, char** argv) {
 
     char* buf = (char*)malloc(255);
 
-    while (fgets(buf, 255, file) != NULL) {
-        fputs(buf, stdout);
+    if (line_mode == 0) {
+        while (fgets(buf, 255, file) != NULL) {
+            fputs(buf, stdout);
+        }
+    } else {
+        setvbuf(stdin, NULL, _IONBF, 0);
+        ioctl(0, TTY_CMD_ECHO, 0, 0);
+        while (1) {
+            char* b = fgets(buf, 255, file);
+            if (b == NULL) {
+                break;
+            }
+            fputs(buf, stdout);
+
+            int ch;
+            while ((ch = fgetc(stdin)) != 'n') {
+                if (ch == 'q') {
+                    goto less_quit;
+                }
+            }
+        }
+
+    less_quit:
+        setvbuf(stdin, NULL, _IOLBF, BUFSIZ);
+        ioctl(0, TTY_CMD_ECHO, 1, 0);
     }
     free(buf);
     fclose(file);

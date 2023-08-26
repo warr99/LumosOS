@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-11 14:36:10
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-23 13:02:48
+ * @LastEditTime: 2023-08-26 14:03:22
  * @Description:
  */
 #include "lib_syscall.h"
@@ -16,7 +16,7 @@ static int sys_call(syscall_args_t* args) {
         "push %[arg2]\n\t"
         "push %[arg1]\n\t"
         "push %[arg0]\n\t"
-        "push %[id]\n\t" 
+        "push %[id]\n\t"
         "lcalll *(%[a])"
         : "=a"(ret)
         : [arg3] "r"(args->arg3),
@@ -126,6 +126,16 @@ int lseek(int file, int ptr, int dir) {
     return sys_call(&args);
 }
 
+int ioctl(int fd, int cmd, int arg0, int arg1) {
+    syscall_args_t args;
+    args.id = SYS_ioctl;
+    args.arg0 = fd;
+    args.arg1 = cmd;
+    args.arg2 = arg0;
+    args.arg3 = arg1;
+    return sys_call(&args);
+}
+
 /**
  * 获取文件的状态
  */
@@ -199,12 +209,12 @@ struct dirent* readdir(DIR* dir) {
     args.arg1 = (int)&dir->dirent;
     int err = sys_call(&args);
     if (err < 0) {
-        return (struct dirent *)0;
+        return (struct dirent*)0;
     }
     return &dir->dirent;
 }
 
-int closedir(DIR *dir) {
+int closedir(DIR* dir) {
     syscall_args_t args;
     args.id = SYS_closedir;
     args.arg0 = (int)dir;

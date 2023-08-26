@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-19 10:34:58
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-19 14:34:20
+ * @LastEditTime: 2023-08-26 12:05:10
  * @Description:
  */
 /*
@@ -117,6 +117,13 @@ int devfs_stat(file_t* file, struct stat* st) {
     return -1;
 }
 
+/**
+ * @brief IO设备控制
+ */
+int devfs_ioctl(file_t* file, int cmd, int arg0, int arg1) {
+    return dev_control(file->dev_id, cmd, arg0, arg1);
+}
+
 // 设备文件系统
 fs_op_t devfs_op = {
     .mount = devfs_mount,
@@ -127,4 +134,5 @@ fs_op_t devfs_op = {
     .seek = devfs_seek,
     .stat = devfs_stat,
     .close = devfs_close,
+    .ioctl = devfs_ioctl,
 };

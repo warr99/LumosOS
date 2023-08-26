@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-15 10:32:56
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-18 00:12:36
+ * @LastEditTime: 2023-08-26 13:46:59
  * @Description: 该文件包含与TTY设备交互相关的函数。
  */
 #include "dev/tty.h"
@@ -219,7 +219,18 @@ int tty_read(device_t* dev, int addr, char* buf, int size) {
  * @return 成功返回0，失败返回错误代码。
  */
 int tty_control(device_t* dev, int cmd, int arg0, int arg1) {
-    return 0;
+    tty_t* tty = get_tty(dev);
+    switch (cmd) {
+        case TTY_CMD_ECHO:
+            if (arg0) {
+                tty->iflags |= TTY_IECHO;
+            } else {
+                tty->iflags &= ~TTY_IECHO;
+            }
+            break;
+        default:
+            break;
+    }
 }
 
 /**
