@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:42:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-26 12:01:07
+ * @LastEditTime: 2023-08-26 17:16:32
  * @Description:
  */
 #include "fs/fs.h"
@@ -18,10 +18,7 @@
 #include "tools/klib.h"
 #include "tools/log.h"
 
-#define TEMP_FILE_ID 100
-#define TEMP_ADDR (8 * 1024 * 1024)  // 在0x800000处缓存原始
 #define FS_TABLE_SIZE 10             // 文件系统表数量
-static uint8_t* temp_pos;            // 当前位置
 static list_t mounted_list;          // 已挂载的文件系统
 static list_t free_list;             // 空闲fs列表
 static fs_t fs_tbl[FS_TABLE_SIZE];   // 空闲文件系统表
@@ -213,20 +210,11 @@ const char* path_next_child(const char* path) {
  * 打开文件
  */
 int sys_open(const char* name, int flags, ...) {
-    if (kernel_strncmp(name, "/shell.elf", 3) == 0) {
-        int dev_id = dev_open(DEV_DISK, 0xa0, (void*)0);
-        dev_read(dev_id, 5000, (uint8_t*)TEMP_ADDR, 80);
-        // read_disk(5000, 80, (uint8_t*)TEMP_ADDR);
-        temp_pos = (uint8_t*)TEMP_ADDR;
-        return TEMP_FILE_ID;
-    }
-
-    int fd = -1;
     file_t* file = file_alloc();
     if (!file) {
         return -1;
     }
-    fd = task_alloc_fd(file);
+    int fd = task_alloc_fd(file);
     if (fd < 0) {
         goto sys_open_failed;
     }
@@ -270,12 +258,6 @@ sys_open_failed:
  * 读取文件api
  */
 int sys_read(int file, char* ptr, int len) {
-    if (file == TEMP_FILE_ID) {
-        kernel_memcpy(ptr, temp_pos, len);
-        temp_pos += len;
-        return len;
-    }
-
     if (is_fd_bad(file) || !ptr || !len) {
         return 0;
     }
@@ -323,11 +305,6 @@ int sys_write(int file, char* ptr, int len) {
  * 文件访问位置定位
  */
 int sys_lseek(int file, int ptr, int dir) {
-    if (file == TEMP_FILE_ID) {
-        temp_pos = (uint8_t*)(ptr + TEMP_ADDR);
-        return 0;
-    }
-
     if (is_fd_bad(file)) {
         return -1;
     }
@@ -371,9 +348,6 @@ int sys_ioctl(int fd, int cmd, int arg0, int arg1) {
  * 关闭文件
  */
 int sys_close(int file) {
-    if (file == TEMP_FILE_ID) {
-        return 0;
-    }
     if (is_fd_bad(file)) {
         log_printf("file error");
         return -1;

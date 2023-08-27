@@ -73,6 +73,9 @@ int dev_open(int major, int minor, void* data) {
     irq_leave_protection(state);
     return -1;  // 返回 -1 表示打开失败。
 }
+/**
+ * @brief 读取指定字节的数据
+ */
 int dev_read(int dev_id, int addr, char* buf, int size) {
     if (is_devid_bad(dev_id)) {
         return -1;

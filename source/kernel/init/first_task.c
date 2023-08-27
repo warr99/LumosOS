@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-25 10:10:58
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-19 14:53:49
+ * @LastEditTime: 2023-08-26 22:01:32
  * @Description:
  */
 #include "applib/lib_syscall.h"
@@ -48,7 +48,7 @@ int first_task_main(void) {
             char tty_num[] = "/dev/tty?";
             tty_num[sizeof(tty_num)-2] = i + '0';
             char* argv[] = {tty_num, (char*)0};
-            execve("/shell.elf", argv, (char**)0);
+            execve("shell.elf", argv, (char**)0);
             print_msg("create shell proc failed", 0);
             while (1) {
                 msleep(10000);
