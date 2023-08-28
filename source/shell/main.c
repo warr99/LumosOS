@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 13:56:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-26 14:05:14
+ * @LastEditTime: 2023-08-27 23:35:21
  * @Description:
  */
 #include "main.h"
@@ -258,10 +258,9 @@ static void run_exec_file(const char* path, int argc, char** argv) {
     if (pid < 0) {
         fprintf(stderr, "fork failed: %s", path);
     } else if (pid == 0) {
-        // 以下供测试exit使用
-        for (int i = 0; i < argc; i++) {
-            msleep(1000);
-            printf("arg %d = %s\n", i, argv[i]);
+        int err = execve(path, argv, (char* const*)0);
+        if (err < 0) {
+            fprintf(stderr, "exec failed: %s", path);
         }
         exit(-1);
     } else {
@@ -282,6 +281,19 @@ static void cli_init(const char* promot, int cnt) {
 
     cli.cmd_start = cmd_list;
     cli.cmd_end = cmd_list + cnt;
+}
+
+/**
+ * 遍历搜索目录，看看文件是否存在，存在返回文件所在路径
+ */
+static const char* find_exec_path(const char* file_name) {
+    int fd = open(file_name, 0);
+    if (fd < 0) {
+        return (const char*)0;
+    }
+
+    close(fd);
+    return file_name;
 }
 
 int main(int argc, char** argv) {
@@ -331,9 +343,13 @@ int main(int argc, char** argv) {
             run_builtin(cmd, argc, argv);
             continue;
         }
-        run_exec_file("", argc, argv);
-        // 找不到命令，提示错误
-        fprintf(stderr, ESC_COLOR_ERROR "Unknown command: %s\n" ESC_COLOR_DEFAULT, cli.curr_input);
+        const char* path = find_exec_path(argv[0]);
+        if (path) {
+            run_exec_file(path, argc, argv);
+        } else {
+            // 找不到命令，提示错误
+            fprintf(stderr, ESC_COLOR_ERROR "Unknown command: %s\n" ESC_COLOR_DEFAULT, cli.curr_input);
+        }
     }
     return 0;
 }
