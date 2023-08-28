@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 13:56:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-28 15:50:50
+ * @LastEditTime: 2023-08-28 19:34:38
  * @Description:
  */
 #include "main.h"
@@ -343,26 +343,26 @@ static void cli_init(const char* promot, int cnt) {
  * 遍历搜索目录，看看文件是否存在，存在返回文件所在路径
  */
 static const char* find_exec_path(const char* file_name) {
+    static char path[255];
     int fd = open(file_name, 0);
     if (fd < 0) {
-        return (const char*)0;
+        sprintf(path, "%s.elf", file_name);
+        fd = open(path, 0);
+        if (fd < 0) {
+            return (const char*)0;
+        }
+        close(fd);
+        return path;
+    } else {
+        close(fd);
+        return file_name;
     }
-
-    close(fd);
-    return file_name;
 }
 
 int main(int argc, char** argv) {
     open(argv[0], O_RDWR);
     dup(0);
     dup(0);
-
-    printf("Welcome \033[33;49mLumosOS\n");
-    printf("\033[39;49m---------------\n");
-    printf("VERSION: %s\n", OS_VERSION);
-    printf("Author: ChenXr\n");
-    printf("Create Data: 2023-07\n");
-
     cli_init(promot, sizeof(cmd_list) / sizeof(cmd_list[0]));
     for (;;) {
         show_promot();

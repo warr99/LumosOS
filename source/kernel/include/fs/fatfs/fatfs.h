@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-22 22:40:02
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-28 11:41:47
+ * @LastEditTime: 2023-08-28 16:04:56
  * @Description:
  */
 #ifndef FATFS_H
@@ -11,6 +11,8 @@
 #include "comm/types.h"
 
 #pragma pack(1)
+
+#include "ipc/mutex.h"
 
 #define FAT_CLUSTER_INVALID 0xFFF8  // 无效的簇号
 #define FAT_CLUSTER_FREE 0x00       // 空闲或无效的簇号
@@ -93,6 +95,7 @@ typedef struct _fat_t {
     int curr_sector;      // 当前缓存的扇区数
 
     struct _fs_t* fs;  // 所在的文件系统
+    mutex_t mutex;
 } fat_t;
 
 typedef uint16_t cluster_t;

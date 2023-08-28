@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-17 10:04:20
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-15 15:16:51
+ * @LastEditTime: 2023-08-28 19:38:06
  * @Description:
  */
 #include "tools/log.h"
@@ -57,6 +57,7 @@ void log_printf(const char* fmt, ...) {
 
 #else
     // console_write(0, str_buf, kernel_strlen(str_buf));
+    // dev_write(log_dev_id, 0, "log: ", 5);
     dev_write(log_dev_id, 0, str_buf, kernel_strlen(str_buf));
     char c = '\n';
     // console_write(0, &c, 1);

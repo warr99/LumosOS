@@ -379,6 +379,8 @@ int fatfs_mount(struct _fs_t* fs, int dev_major, int dev_minor) {
     fat->data_start = fat->root_start + fat->root_ent_cnt * 32 / SECTOR_SIZE;
     fat->curr_sector = -1;
     fat->fs = fs;
+    mutex_init(&fat->mutex);
+    fs->mutex = &fat->mutex;
     if (fat->tbl_cnt != 2) {
         log_printf("fat table num error, major: %x, minor: %x", dev_major, dev_minor);
         goto mount_failed;
@@ -454,8 +456,10 @@ int fatfs_open(struct _fs_t* fs, const char* path, file_t* file) {
             return -1;
         }
         read_from_diritem(fat, file, &item, p_index);
+        return 0;
+    } else {
+        return -1;
     }
-    return 0;
 }
 
 /**

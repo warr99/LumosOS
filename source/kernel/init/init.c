@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-12 19:56:55
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-16 15:10:28
+ * @LastEditTime: 2023-08-28 16:26:13
  * @Description:
  */
 
@@ -60,7 +60,12 @@ void move_to_first_task(void) {
 }
 
 void init_main(void) {
-    log_printf("Kernel is running ...");
+    log_printf("---------------------------------------------------");
+    log_printf("Kernel is running...");
+    log_printf("Welcome \033[33;49mLumosOS\033[39;49m");
+    log_printf("VERSION: %s", OS_VERSION);
+    log_printf("Author: ChenXr");
+    log_printf("Create Data: 2023-07");
     task_first_init();
     move_to_first_task();
 }
