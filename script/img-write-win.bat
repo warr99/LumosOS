@@ -34,7 +34,7 @@ if %errorlevel% neq 0 (
 )
 del a.txt
 
-@REM copy /Y init.elf %TARGET_PATH%:\init
+copy /Y init.elf %TARGET_PATH%:\init
 copy /Y shell.elf %TARGET_PATH%:\shell.elf
 copy /Y loop.elf %TARGET_PATH%:\loop
 

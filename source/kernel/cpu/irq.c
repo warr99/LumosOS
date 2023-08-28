@@ -2,11 +2,12 @@
  * @Author: warrior
  * @Date: 2023-07-15 09:50:54
  * @LastEditors: warrior
- * @LastEditTime: 2023-07-27 15:32:05
+ * @LastEditTime: 2023-08-28 09:36:04
  * @Description:
  */
 #include "cpu/irq.h"
 #include "comm/cpu_instr.h"
+#include "core/task.h"
 #include "cpu/cpu.h"
 #include "os_cfg.h"
 #include "tools/log.h"
@@ -110,8 +111,12 @@ static void do_default_handler(exception_frame_t* frame, const char* message) {
     log_printf("----------------------------");
     log_printf("IRQ/Exception: %s", message);
     dump_core_regs(frame);
-    for (;;) {
-        hlt();
+    if (frame->cs & 0x3) {
+        sys_exit(frame->error_code);
+    } else {
+        while (1) {
+            hlt();
+        }
     }
 }
 
@@ -195,13 +200,13 @@ void do_handler_general_protection(exception_frame_t* frame) {
     while (1) {
         hlt();
     }
-    // if (frame->cs & 0x3) {
-    //     sys_exit(frame->error_code);
-    // } else {
-    //     for (;;) {
-    //         hlt();
-    //     }
-    // }
+    if (frame->cs & 0x3) {
+        sys_exit(frame->error_code);
+    } else {
+        for (;;) {
+            hlt();
+        }
+    }
 }
 
 void do_handler_page_fault(exception_frame_t* frame) {
@@ -224,19 +229,17 @@ void do_handler_page_fault(exception_frame_t* frame) {
     } else {
         log_printf("\tA user-mode access caused the fault.");
     }
-
     dump_core_regs(frame);
-    while (1) {
-        hlt();
+    // 查看当前特权级是 0 还是 3
+    if (frame->cs & 0x3) {
+        // 特权级 3 -> 用户程序触发的异常
+        sys_exit(frame->error_code);
+    } else {
+        // 特权级 1 -> 内核触发异常
+        while (1) {
+            hlt();
+        }
     }
-
-    // if (frame->cs & 0x3) {
-    //     sys_exit(frame->error_code);
-    // } else {
-    //     for (;;) {
-    //         hlt();
-    //     }
-    // }
 }
 
 void do_handler_fpu_error(exception_frame_t* frame) {
