@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:14:57
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-26 13:49:30
+ * @LastEditTime: 2023-08-28 13:20:10
  * @Description:
  */
 #ifndef FS_H
@@ -36,6 +36,7 @@ typedef struct _fs_op_t {
     int (*opendir)(struct _fs_t* fs, const char* name, DIR* dir);
     int (*readdir)(struct _fs_t* fs, DIR* dir, struct dirent* dirent);
     int (*closedir)(struct _fs_t* fs, DIR* dir);
+    int (*unlink)(struct _fs_t* fs, const char* path);
 } fs_op_t;
 
 typedef enum _fs_type_t {
@@ -157,5 +158,7 @@ int sys_readdir(DIR* dir, struct dirent* dirent);
 int sys_closedir(DIR* dir);
 
 int sys_ioctl(int fd, int cmd, int arg0, int arg1);
+
+int sys_unlink(const char* path);
 
 #endif

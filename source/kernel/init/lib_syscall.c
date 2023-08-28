@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-11 14:36:10
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-26 14:03:09
+ * @LastEditTime: 2023-08-28 13:41:26
  * @Description:
  */
 #include "applib/lib_syscall.h"
@@ -175,3 +175,4 @@ int wait(int* status) {
     args.arg0 = (int)status;
     sys_call(&args);
 }
+

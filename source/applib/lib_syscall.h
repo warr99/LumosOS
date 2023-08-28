@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-07-31 21:43:32
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-26 13:59:55
+ * @LastEditTime: 2023-08-28 13:24:35
  * @Description:
  */
 #ifndef LIB_SYSCALL_H
@@ -67,6 +67,7 @@ void _exit(int status);
 
 int wait(int* status);
 
+int unlink(const char* path);
 struct dirent {
     int index;
     int type;

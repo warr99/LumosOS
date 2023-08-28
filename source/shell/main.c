@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 13:56:41
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-28 10:14:11
+ * @LastEditTime: 2023-08-28 15:50:50
  * @Description:
  */
 #include "main.h"
@@ -181,13 +181,13 @@ static int do_less(int argc, char** argv) {
     return 0;
 }
 
-static int do_cp (int argc, char ** argv) {
+static int do_cp(int argc, char** argv) {
     if (argc < 3) {
         puts("no [from] or no [to]");
         return -1;
     }
 
-    FILE * from, * to;
+    FILE *from, *to;
     from = fopen(argv[1], "rb");
     to = fopen(argv[2], "wb");
     if (!from || !to) {
@@ -195,10 +195,10 @@ static int do_cp (int argc, char ** argv) {
         goto ls_failed;
     }
 
-    char * buf = (char *)malloc(255);
+    char* buf = (char*)malloc(255);
     int size = 0;
     while ((size = fread(buf, 1, 255, from)) > 0) {
-        fwrite(buf, 1, size, to); 
+        fwrite(buf, 1, size, to);
     }
     free(buf);
 
@@ -209,6 +209,21 @@ ls_failed:
     if (to) {
         fclose(to);
     }
+    return 0;
+}
+
+static int do_rm(int argc, char** argv) {
+    if (argc < 2) {
+        fprintf(stderr, "no file");
+        return -1;
+    }
+
+    int err = unlink(argv[1]);
+    if (err < 0) {
+        fprintf(stderr, "rm file failed: %s", argv[1]);
+        return err;
+    }
+
     return 0;
 }
 
@@ -248,6 +263,11 @@ static const cli_cmd_t cmd_list[] = {
         .name = "cp",
         .usage = "cp SOURCE DIRECTORY --  Copy files",
         .do_func = do_cp,
+    },
+    {
+        .name = "rm",
+        .usage = "rm file -- remove file",
+        .do_func = do_rm,
     },
 };
 

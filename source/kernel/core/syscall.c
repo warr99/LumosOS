@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-04 10:51:33
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-23 12:52:08
+ * @LastEditTime: 2023-08-28 11:33:15
  * @Description:
  */
 #include "core/syscall.h"
@@ -38,6 +38,7 @@ static const syscall_handler_t sys_table[] = {
     [SYS_opendir] = (syscall_handler_t)sys_opendir,
     [SYS_readdir] = (syscall_handler_t)sys_readdir,
     [SYS_closedir] = (syscall_handler_t)sys_closedir,
+    [SYS_unlink] = (syscall_handler_t)sys_unlink,
 };
 
 void do_handler_syscall(syscall_frame_t* frame) {

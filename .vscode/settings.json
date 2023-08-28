@@ -37,7 +37,8 @@
         "devfs.h": "c",
         "disk.h": "c",
         "fatfs.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "stat.h": "c"
     },
     "fileheader.configObj": {
         "createFileTime": true,

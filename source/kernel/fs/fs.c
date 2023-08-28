@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-07 16:42:16
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-26 17:16:32
+ * @LastEditTime: 2023-08-28 11:33:43
  * @Description:
  */
 #include "fs/fs.h"
@@ -455,4 +455,11 @@ int sys_closedir(DIR* dir) {
     int err = root_fs->op->closedir(root_fs, dir);
     fs_unprotect(root_fs);
     return err;
+}
+
+int sys_unlink (const char * path) {
+	fs_protect(root_fs);
+	int err = root_fs->op->unlink(root_fs, path);
+	fs_unprotect(root_fs);
+	return err;
 }
