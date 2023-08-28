@@ -2,7 +2,7 @@
  * @Author: warrior
  * @Date: 2023-08-19 22:27:07
  * @LastEditors: warrior
- * @LastEditTime: 2023-08-23 00:26:16
+ * @LastEditTime: 2023-08-28 10:45:50
  * @Description:
  */
 #include "dev/disk.h"
@@ -272,9 +272,6 @@ int disk_write(device_t* dev, int start_sector, char* buf, int count) {
         if (task_current()) {
             sem_wait(disk->op_sem);
         }
-
-        // 利用信号量等待中断通知，等待写完成
-        sem_wait(disk->op_sem);
 
         // 这里虽然有调用等待，但是由于已经是操作完毕，所以并不会等
         int err = ata_wait_data(disk);
